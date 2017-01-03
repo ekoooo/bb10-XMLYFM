@@ -51,10 +51,6 @@ var _tabMgr = {
                 }
             }
 
-            $('.tab_content').css({
-                height: App.BB_SCREEN_HEIGHT - App.ACTION_BAR_HEIGHT - $('.tab_header').height()
-            });
-
             var headerUl = $('.tab_header ul'),
                 contentUl = $('.tab_content ul');
 
@@ -71,7 +67,8 @@ var _tabMgr = {
                 width: 100 / _tabMgr.crtLen + '%'
             });
             contentLi.css({
-                width: 100 / _tabMgr.crtLen + '%'
+                width: 100 / _tabMgr.crtLen + '%',
+                height: App.BB_SCREEN_HEIGHT - App.ACTION_BAR_HEIGHT - $('.tab_header').height()
             });
 
             headerLi.eq(0).find('a').addClass('active');
@@ -86,6 +83,9 @@ var _tabMgr = {
         switch (contentType) {
             case "category": // 分类
                 _tabMgr.categoryTab.init();
+                break;
+            case "ranking": // 分类
+                _tabMgr.rankTab.init();
                 break;
             default:
                 break;
@@ -108,12 +108,12 @@ var _tabMgr = {
     },
     // 分类 tab
     categoryTab: {
-        tabInfo: null,
+        cateInfo: null,
         initPage: function(data) {
             if(data !== null) {
-                _tabMgr.categoryTab.tabInfo = JSON.parse(data);
+                _tabMgr.categoryTab.cateInfo = JSON.parse(data);
 
-                var list = _tabMgr.categoryTab.tabInfo.list,
+                var list = _tabMgr.categoryTab.cateInfo.list,
                     len = list.length,
                     category = $('.category'),
                     lis = '',
@@ -122,10 +122,11 @@ var _tabMgr = {
                 for (var i = 0; i < len; i++) {
                     item = list[i];
                     if(!item.isPaid) {
-                        lis += '<div>' + 
-                            '   <a href="javascript:void(0);" data-obj="' + JSON.stringify(item) + '">' + 
+                        lis += '<div>' +
+                            // '   <a href="javascript:void(0);" data-obj="' + JSON.stringify(item) + '">' +
+                            '   <a href="javascript:void(0);">' +
                             '       <img src="' + item.coverPath + '" >' + item.title +
-                            '   </a>' + 
+                            '   </a>' +
                             '</div>';
                     }
                 }
@@ -134,8 +135,58 @@ var _tabMgr = {
             }
         },
         init: function() {
-            if(_tabMgr.categoryTab.tabInfo === null) {
+            if(_tabMgr.categoryTab.cateInfo === null) {
                 _httpRequest.cate.getIndexPageData(_tabMgr.categoryTab.initPage);
+            }
+        }
+    },
+    // 榜单 tab
+    rankTab: {
+        rankInfo: null,
+        initPage: function(data) {
+            if(data !== null) {
+                _tabMgr.rankTab.rankInfo = JSON.parse(data);
+
+                var datas = _tabMgr.rankTab.rankInfo.datas,
+                    dataLen = datas.length,
+                    dataItem = null,
+                    list = null,
+                    listItem = null,
+                    firstKResults = null,
+                    rankListTpl,
+                    rankItemHTML;
+
+                var rank = $('.ranking').empty();
+
+                for (var i = 0; i < dataLen; i++) {
+                    dataItem = datas[i];
+                    list = dataItem['list'];
+                    rankListTpl = $('<div class="rank_list clearfix"><div class="rank_title">' + dataItem['title'] + '</div></div>');
+
+                    rankItemHTML = '';
+                    for (var j = 0, listLen = list.length; j < listLen; j++) {
+                        listItem = list[j];
+                        firstKResults = listItem['firstKResults'];
+
+                        rankItemHTML += ['<div class="rank_item" data-firstId="' + listItem['firstId'] + '">',
+                            '    <div class="rank_cover">',
+                            '        <img src="' + listItem['coverPath'] + '" />',
+                            '    </div>',
+                            '    <div class="rank_desc">',
+                            '        <h2>' + listItem['title'] + '</h2>',
+                            '        <p data-id="' + firstKResults[0].id + '">1. ' + firstKResults[0].title + '</p>',
+                            '        <p data-id="' + firstKResults[1].id + '">2. ' + firstKResults[1].title + '</p>',
+                            '    </div>',
+                            '</div>'].join('');
+                    }
+
+                    rank.append(rankListTpl.append($(rankItemHTML)));
+                }
+            }
+        },
+        init: function() {
+            if(_tabMgr.rankTab.rankInfo === null) {
+                _httpRequest.rank.getIndexPageData(_tabMgr.rankTab.initPage);
             }
         }
     }
@@ -176,6 +227,15 @@ var _httpRequest = {
         }
     },
     /**
+     * TAB
+     */
+    tabs: {
+        API: "http://mobile.ximalaya.com/mobile/discovery/v2/tabs?device=#{device}&version=#{version}",
+        getData: function(callback) {
+            _httpRequest.baseRequest(_httpRequest.getAPI(this.API, _httpRequest.API_CONFIG), callback);
+        }
+    },
+    /**
      * 分类
      */
     cate: {
@@ -194,12 +254,12 @@ var _httpRequest = {
         }
     },
     /**
-     * 主页 tab header
+     * 榜单
      */
-    tabs: {
-        API: "http://mobile.ximalaya.com/mobile/discovery/v2/tabs?device=#{device}&version=#{version}",
-        getData: function(callback) {
-            _httpRequest.baseRequest(_httpRequest.getAPI(this.API, _httpRequest.API_CONFIG), callback);
+    rank: {
+        RANK_INDEX_API: "http://mobile.ximalaya.com/mobile/discovery/v2/rankingList/group?includeActivity=true&includeSpecial=true&scale=2&device=#{device}&version=#{version}",
+        getIndexPageData: function(callback) {
+            _httpRequest.baseRequest(_httpRequest.getAPI(this.RANK_INDEX_API, _httpRequest.API_CONFIG), callback);
         }
     }
 };
