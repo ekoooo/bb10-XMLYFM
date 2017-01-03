@@ -1,115 +1,90 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
 * {
     -webkit-tap-highlight-color: rgba(0,0,0,0); /* make transparent link selection, adjust last value opacity 0 to 1.0 */
 }
 
 body {
-    -webkit-touch-callout: none;                /* prevent callout to copy image, etc when tap to hold */
-    -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
-    -webkit-user-select: none;                  /* prevent copy paste, to allow, change 'none' to 'text' */
-    background-color:#E4E4E4;
-    background-image:linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-webkit-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-ms-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-webkit-gradient(
-        linear,
-        left top,
-        left bottom,
-        color-stop(0, #A7A7A7),
-        color-stop(0.51, #E4E4E4)
-    );
-    background-attachment:fixed;
-    font-family:'HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
-    font-size:12px;
-    height:100%;
-    margin:0px;
-    padding:0px;
-    text-transform:uppercase;
-    width:100%;
+    -webkit-touch-callout: none;
+    -webkit-text-size-adjust: none;
+    font-family: 'HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
+    -webkit-user-select: none;
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
 }
 
-/* Portrait layout (default) */
-.app {
-    background:url(../img/logo.png) no-repeat center top; /* 170px x 200px */
-    position:absolute;             /* position in the center of the screen */
-    left:50%;
-    top:50%;
-    height:50px;                   /* text area height */
-    width:225px;                   /* text area width */
-    text-align:center;
-    padding:190px 0px 0px 0px;     /* image height is 200px (bottom 20px are overlapped with text) */
-    margin:-115px 0px 0px -112px;  /* offset vertical: half of image height and text area height */
-                                   /* offset horizontal: half of text area width */
-}
+@media only screen and (max-width: 1920px) and (min-width: 720px) { html, body{ font-size: 20px }.viewport{max-width: 720px;}}
+@media only screen and (max-width: 719px) and (min-width:690px) { html, body{ font-size: 19.4444px; }.viewport{max-width: 700px;}}
+@media only screen and (max-width: 689px) and (min-width:660px) { html, body{ font-size: 18.6331px; }.viewport{max-width: 689px;}}
+@media only screen and (max-width: 659px) and (min-width:630px) { html, body{ font-size: 17.8217px; }.viewport{max-width: 659px;}}
+@media only screen and (max-width: 629px) and (min-width:600px) { html, body{ font-size: 17.0103px; }.viewport{max-width: 629px;}}
+@media only screen and (max-width: 599px) and (min-width:570px) { html, body{ font-size: 16.1989px; }.viewport{max-width: 599px;}}
+@media only screen and (max-width: 569px) and (min-width:540px) { html, body{ font-size: 15.3876px; }.viewport{max-width: 569px;}}
+@media only screen and (max-width: 539px) and (min-width:510px) { html, body{ font-size: 14.5763px; }.viewport{max-width: 539px;}}
+@media only screen and (max-width: 509px) and (min-width:480px) { html, body{ font-size: 13.7650px; }.viewport{max-width: 509px;}}
+@media only screen and (max-width: 479px) and (min-width:450px) { html, body{ font-size: 12.9537px; }.viewport{max-width: 479px;}}
+@media only screen and (max-width: 449px) and (min-width:420px) { html, body{ font-size: 12.1424px; }.viewport{max-width: 449px;}}
+@media only screen and (max-width: 419px) and (min-width:390px) { html, body{ font-size: 11.3311px; }.viewport{max-width: 419px;}}
+@media only screen and (max-width: 389px) and (min-width:360px) { html, body{ font-size: 10.5189px; }.viewport{max-width: 389px;}}
+@media only screen and (max-width: 359px) and (min-width:330px) { html, body{ font-size: 9.7067px; }.viewport{max-width: 359px;}}
+@media only screen and (max-width: 329px) and (min-width:250px) { html, body{ font-size: 8.8955px; }.viewport{min-width: 320px;}}
 
-/* Landscape layout (with min-width) */
-@media screen and (min-aspect-ratio: 1/1) and (min-width:400px) {
-    .app {
-        background-position:left center;
-        padding:75px 0px 75px 170px;  /* padding-top + padding-bottom + text area = image height */
-        margin:-90px 0px 0px -198px;  /* offset vertical: half of image height */
-                                      /* offset horizontal: half of image width and text area width */
-    }
-}
 
-h1 {
-    font-size:24px;
-    font-weight:normal;
-    margin:0px;
-    overflow:visible;
-    padding:0px;
-    text-align:center;
+/*index tab start*/
+.tab_container {
+    font-size: 2.5rem;
 }
+.tab_header {
+    background-color: #F4F4F4;
+    height: 6rem;
+    line-height: 5.8rem;
+}
+.tab_header li {
+    float: left;
+    text-align: center;
+}
+.tab_header li a.active {
+    border-bottom: 3px solid #EC6A4B;
+    color: #E27660;
+}
+.tab_header a {
+    display: block;
+}
+.tab_content {
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+.tab_content li {
+    float: left;
+}
+/*index tab end*/
 
-.event {
-    border-radius:4px;
-    -webkit-border-radius:4px;
-    color:#FFFFFF;
-    font-size:12px;
-    margin:0px 30px;
-    padding:2px 0px;
+/*tab cate start*/
+.cate_list {
+    background-color: #EDECE8;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    border-bottom: 0.1rem solid #EDECE8;
+    border-top: 0.1rem solid #EDECE8;
 }
-
-.event.listening {
-    background-color:#333333;
-    display:block;
+.cate_list div {
+    width: 49.9%;
+    box-sizing: border-box;
+    height: 7rem;
+    line-height: 7rem;
+    background-color: #fff;
+    margin-top: 0.1rem;
 }
-
-.event.received {
-    background-color:#4B946A;
-    display:none;
+.cate_list a {
+    display: block;
 }
-
-@keyframes fade {
-    from { opacity: 1.0; }
-    50% { opacity: 0.4; }
-    to { opacity: 1.0; }
+.cate_list a img {
+    width: 3.5rem;
+    margin-left: 4rem;
+    margin-right: 1rem;
+    vertical-align: middle;
 }
-
-@-webkit-keyframes fade {
-    from { opacity: 1.0; }
-    50% { opacity: 0.4; }
-    to { opacity: 1.0; }
-}
-
-.blink {
-    animation:fade 3000ms infinite;
-    -webkit-animation:fade 3000ms infinite;
-}
+/*tab cate end*/

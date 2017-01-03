@@ -5,6 +5,8 @@
     <author email="954408050@qq.com" href="github.com/ekoooo">ekoo</author>
     <content src="index.html" />
     <access origin="*" />
+    <access origin="http://ximalaya.com" subdomains="true" />
+    <access origin="https://ximalaya.com" subdomains="true" />
     <preference name="ChildBrowser" value="disable" />
     <description>喜马拉雅FM客户端</description>
 </widget>
