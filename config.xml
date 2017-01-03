@@ -1,0 +1,11 @@
+<widget id="com.xmlyfm.com" 
+  xmlns="http://www.w3.org/ns/widgets" 
+  xmlns:cdv="http://cordova.apache.org/ns/1.0" version="0.0.1">
+  <name>bb10-XMLYFM</name>
+  <license href="MIT"/>
+  <author email="954408050@qq.com" href="github.com/ekoooo">ekoo</author>
+  <content src="index.html"/>
+  <access origin="*"/>
+  <preference name="ChildBrowser" value="disable"/>
+  <description>喜马拉雅FM客户端</description>
+</widget>
