@@ -87,6 +87,9 @@ var _tabMgr = {
             case "ranking": // 分类
                 _tabMgr.rankTab.init();
                 break;
+            case "anchor": // 分类
+                _tabMgr.anchorTab.init();
+                break;
             default:
                 break;
         }
@@ -153,15 +156,12 @@ var _tabMgr = {
                     list = null,
                     listItem = null,
                     firstKResults = null,
-                    rankListTpl,
+                    rankListTpl = '',
                     rankItemHTML;
-
-                var rank = $('.ranking').empty();
 
                 for (var i = 0; i < dataLen; i++) {
                     dataItem = datas[i];
                     list = dataItem['list'];
-                    rankListTpl = $('<div class="rank_list clearfix"><div class="rank_title">' + dataItem['title'] + '</div></div>');
 
                     rankItemHTML = '';
                     for (var j = 0, listLen = list.length; j < listLen; j++) {
@@ -180,13 +180,95 @@ var _tabMgr = {
                             '</div>'].join('');
                     }
 
-                    rank.append(rankListTpl.append($(rankItemHTML)));
+                    rankListTpl += '<div class="rank_list clearfix">' + 
+                        '   <div class="rank_title">' + dataItem['title'] + '</div>' + rankItemHTML
+                        '</div>';
                 }
+                
+                $('.ranking').empty().append(rankListTpl);
             }
         },
         init: function() {
             if(_tabMgr.rankTab.rankInfo === null) {
                 _httpRequest.rank.getIndexPageData(_tabMgr.rankTab.initPage);
+            }
+        }
+    },
+    // 主播 tab
+    anchorTab: {
+        anchorInfo: null,
+        initPageItem: function(data, maxLen) {
+            var dataLen = data.length,
+                dataItem = null,
+                listItem = null,
+                list = null,
+                anchorListHTML = '',
+                displayStyle,
+                itemHTML;
+
+            for (var i = 0; i < dataLen; i++) {
+                dataItem = data[i];
+                displayStyle = dataItem['displayStyle'] || 1;
+                list = dataItem['list'];
+
+                itemHTML = '';
+
+                for (var j = 0, len = list.length; j < len; j++) {
+                    if(j && j === maxLen) {
+                        break;
+                    }
+
+                    listItem = list[j];
+                    if(displayStyle === 1) {
+                        itemHTML += '<div class="anchor_item" data-uid="' + listItem['uid'] + '">' + 
+                            '    <div>' + 
+                            '        <img src="' + listItem['largeLogo'] + '">' + 
+                            '        <div class="anchor_nickname">' + listItem['nickname'] + '</div>' + 
+                            '    </div>' + 
+                            '    <p>' + (listItem['verifyTitle'] || listItem['personDescribe'] || '') + '</p>' + 
+                            '</div>';
+                    }else {
+                        itemHTML += '<div class="singer_item" data-uid="' + listItem['uid'] + '">' + 
+                            '    <div class="singer_cover">' + 
+                            '        <img src="' + listItem['largeLogo'] + '">' + 
+                            '    </div>' + 
+                            '    <div class="singer_desc">' + 
+                            '        <h2>' + listItem['nickname'] + '</h2>' + 
+                            '        <p class="singler_desc">' + listItem['personDescribe'] + '</p>' + 
+                            '        <p class="singler_followers">关注: ' + listItem['followersCounts'] + '</p>' + 
+                            '    </div>' + 
+                            '</div>';
+                    }
+                }
+
+                if(displayStyle === 1) {
+                    itemHTML = '<div class="anchor_box">' + itemHTML + '</div>';
+                }else {
+                    itemHTML = '<div class="singer_box">' + itemHTML + '</div>';
+                }
+
+                anchorListHTML += '<div class="anchor_list">' + 
+                    '    <div class="anchor_header clearfix">' + 
+                    '        <h2>' + dataItem['title'] + '</h2>' + 
+                    '        <span>更多</span>' +
+                    '    </div>' +  itemHTML + 
+                    '</div>';
+            }
+
+            $('.anchor').append(anchorListHTML);
+        },
+        initPage: function(data) {
+            if(data !== null) {
+                _tabMgr.anchorTab.anchorInfo = JSON.parse(data);
+
+                $('.anchor').empty();
+                _tabMgr.anchorTab.initPageItem(_tabMgr.anchorTab.anchorInfo['famous']);
+                _tabMgr.anchorTab.initPageItem(_tabMgr.anchorTab.anchorInfo['normal'], 3);
+            }
+        },
+        init: function() {
+            if(_tabMgr.anchorTab.anchorInfo === null) {
+                _httpRequest.anchor.getIndexPageData(_tabMgr.anchorTab.initPage);
             }
         }
     }

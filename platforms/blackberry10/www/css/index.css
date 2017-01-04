@@ -50,13 +50,13 @@ body {
 }
 .tab_header a {
     display: block;
-    transition: all .2s linear;
+    /*-webkit-transition: all .2s linear;*/
 }
 .tab_content {
     width: 100%;
 }
 .tab_content ul {
-    -webkit-transition: margin-left 0.2s linear;
+    /*-webkit-transition: margin-left 0.2s linear;*/
 }
 .tab_content li {
     float: left;
@@ -73,7 +73,6 @@ body {
     flex-wrap: wrap;
     justify-content: space-between;
     border-bottom: 0.1rem solid #EDECE8;
-    border-top: 0.1rem solid #EDECE8;
 }
 .cate_list div {
     width: 49.9%;
@@ -99,33 +98,36 @@ body {
     background-color: #fff;
     border-bottom: 2rem solid #EDECE8;
 }
-.rank_cover {
+.rank_cover, .singer_cover {
     float: left;
     width: 10rem;
     height: 12rem;
     margin-left: 2.5rem;
 }
-.rank_desc {
+.rank_desc, .singer_desc {
     margin-left: 12.5rem;
     padding-left: 2rem;
     height: 13.5rem;
     border-bottom: 1px solid #EDECE8;
     overflow: hidden;
 }
-.rank_cover img {
+.rank_cover img, .singer_cover img {
     width: 100%;
     margin-top: 1.8rem;
+}
+.singer_cover img {
+    border-radius: 50%;
 }
 .rank_title {
     margin-top: 2rem;
     padding-left: 2.5rem;
 }
-.rank_desc h2 {
+.rank_desc h2, .singer_desc h2 {
     margin-top: 1.7rem;
     font-size: 2.6rem;
     line-height: 1.2;
 }
-.rank_desc p {
+.rank_desc p, .singer_desc p {
     line-height: 3.5rem;
     height: 3.5rem;
     overflow: hidden;
@@ -134,3 +136,56 @@ body {
     color: #969696;
 }
 /*tab rank end*/
+/*anchor start*/
+.anchor_list {
+    border-bottom: 2rem solid #EDECE8;
+    padding-bottom: 2rem;
+}
+.anchor_box {
+    display: flex;
+    flex-wrap: wrap;
+    padding-left: 3.3%;
+}
+.anchor_header {
+    padding: 0 4%;
+    margin-top: 2.3rem;
+}
+.anchor_item {
+    width: 30%;
+}
+.anchor_header h2 {
+    float: left;
+}
+.anchor_header span {
+    float: right;
+    color: #9F9F9F;
+    font-style: italic;
+}
+.anchor_item {
+    margin-right: 3.3%;
+    margin-top: 2.5rem;
+}
+.anchor_item >div {
+    background-color: #fff;
+    margin: 0 auto;
+    text-align: center;
+    color: #BDA995;
+    box-shadow: 0 0 2rem 0.1rem rgba(0,0,0,0.2);
+}
+.anchor_item img {
+    display: block;
+    width: 100%;
+    height: 20rem;
+}
+.anchor_nickname {
+    line-height: 5rem;
+}
+.anchor_item >p {
+    line-height: 3rem;
+    margin-top: 0.5rem;
+    color: #9F9F9F;
+}
+.singer_item {
+    padding: 1rem 0;
+}
+/*anchor end*/
