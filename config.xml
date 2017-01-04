@@ -10,4 +10,5 @@
   <access origin="https://ximalaya.com" subdomains="true"/>
   <preference name="ChildBrowser" value="disable"/>
   <description>喜马拉雅FM客户端</description>
+  <icon src="img/logo-129x129.png" />
 </widget>

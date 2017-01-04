@@ -46,8 +46,16 @@ var _tabMgr = {
                 item = list[i];
                 if($.inArray(item['contentType'], _tabMgr.currentTabs) !== -1) {
                     _tabMgr.crtLen++;
-                    headerLis += '<li><a href="javascript:void(0);" data-content_type="' + item['contentType'] + '">' + item['title'] + '</a></li>';
-                    contentLis += '<li class="' + item['contentType'] + '">&nbsp;</li>';
+
+                    headerLis += '<li>' + 
+                        '   <a href="javascript:void(0);" data-content_type="' + item['contentType'] + '">' + item['title'] + '</a>' + 
+                        '</li>';
+
+                    contentLis += '<li class="' + item['contentType'] + '">' + 
+                        '   <div class="loading">' + 
+                        '       <img src="img/loading.gif">' + 
+                        '   </div>' + 
+                        '</li>';
                 }
             }
 
@@ -72,6 +80,9 @@ var _tabMgr = {
             });
 
             headerLi.eq(0).find('a').addClass('active');
+
+            // tab 初始化结束之后默认加载`热门`标签页内容
+            _tabMgr.recommendTab.init();
         }
     },
     init: function() {
@@ -84,11 +95,14 @@ var _tabMgr = {
             case "category": // 分类
                 _tabMgr.categoryTab.init();
                 break;
-            case "ranking": // 分类
+            case "ranking": // 榜单
                 _tabMgr.rankTab.init();
                 break;
-            case "anchor": // 分类
+            case "anchor": // 主播
                 _tabMgr.anchorTab.init();
+                break;
+            case "recommend": // 热门
+                _tabMgr.recommendTab.init();
                 break;
             default:
                 break;
@@ -168,11 +182,11 @@ var _tabMgr = {
                         listItem = list[j];
                         firstKResults = listItem['firstKResults'];
 
-                        rankItemHTML += ['<div class="rank_item" data-firstId="' + listItem['firstId'] + '">',
-                            '    <div class="rank_cover">',
+                        rankItemHTML += ['<div class="l_fixed_item" data-firstId="' + listItem['firstId'] + '">',
+                            '    <div class="l_fixed_cover">',
                             '        <img src="' + listItem['coverPath'] + '" />',
                             '    </div>',
-                            '    <div class="rank_desc">',
+                            '    <div class="l_fixed_desc">',
                             '        <h2>' + listItem['title'] + '</h2>',
                             '        <p data-id="' + firstKResults[0].id + '">1. ' + firstKResults[0].title + '</p>',
                             '        <p data-id="' + firstKResults[1].id + '">2. ' + firstKResults[1].title + '</p>',
@@ -180,11 +194,11 @@ var _tabMgr = {
                             '</div>'].join('');
                     }
 
-                    rankListTpl += '<div class="rank_list clearfix">' + 
-                        '   <div class="rank_title">' + dataItem['title'] + '</div>' + rankItemHTML
+                    rankListTpl += '<div class="l_fixed_list rank_list clearfix">' + 
+                        '   <div class="l_fixed_title">' + dataItem['title'] + '</div>' + rankItemHTML
                         '</div>';
                 }
-                
+
                 $('.ranking').empty().append(rankListTpl);
             }
         },
@@ -220,19 +234,19 @@ var _tabMgr = {
 
                     listItem = list[j];
                     if(displayStyle === 1) {
-                        itemHTML += '<div class="anchor_item" data-uid="' + listItem['uid'] + '">' + 
+                        itemHTML += '<div class="three_box_item" data-uid="' + listItem['uid'] + '">' + 
                             '    <div>' + 
                             '        <img src="' + listItem['largeLogo'] + '">' + 
-                            '        <div class="anchor_nickname">' + listItem['nickname'] + '</div>' + 
+                            '        <div class="three_box_info">' + listItem['nickname'] + '</div>' + 
                             '    </div>' + 
                             '    <p>' + (listItem['verifyTitle'] || listItem['personDescribe'] || '') + '</p>' + 
                             '</div>';
                     }else {
                         itemHTML += '<div class="singer_item" data-uid="' + listItem['uid'] + '">' + 
-                            '    <div class="singer_cover">' + 
+                            '    <div class="l_fixed_cover radius">' + 
                             '        <img src="' + listItem['largeLogo'] + '">' + 
                             '    </div>' + 
-                            '    <div class="singer_desc">' + 
+                            '    <div class="l_fixed_desc">' + 
                             '        <h2>' + listItem['nickname'] + '</h2>' + 
                             '        <p class="singler_desc">' + listItem['personDescribe'] + '</p>' + 
                             '        <p class="singler_followers">关注: ' + listItem['followersCounts'] + '</p>' + 
@@ -242,13 +256,13 @@ var _tabMgr = {
                 }
 
                 if(displayStyle === 1) {
-                    itemHTML = '<div class="anchor_box">' + itemHTML + '</div>';
+                    itemHTML = '<div class="three_box">' + itemHTML + '</div>';
                 }else {
                     itemHTML = '<div class="singer_box">' + itemHTML + '</div>';
                 }
 
-                anchorListHTML += '<div class="anchor_list">' + 
-                    '    <div class="anchor_header clearfix">' + 
+                anchorListHTML += '<div class="anchor_list three_box_list">' + 
+                    '    <div class="three_box_header clearfix">' + 
                     '        <h2>' + dataItem['title'] + '</h2>' + 
                     '        <span>更多</span>' +
                     '    </div>' +  itemHTML + 
@@ -269,6 +283,59 @@ var _tabMgr = {
         init: function() {
             if(_tabMgr.anchorTab.anchorInfo === null) {
                 _httpRequest.anchor.getIndexPageData(_tabMgr.anchorTab.initPage);
+            }
+        }
+    },
+    // 热门 tab
+    recommendTab: {
+        recommendInfo: null,
+        initHotRecommendsPanel: function(hotRecommends) {
+            var list = hotRecommends['list'],
+                listLen = list.length,
+                listItem = null,
+                innerList = null,
+                innerListItem = null,
+                threeBoxItemHTML,
+                threeBoxListHTML = '';
+
+            for (var i = 0; i < listLen; i++) {
+                listItem = list[i];
+                innerList = listItem['list'];
+
+                threeBoxItemHTML = '';
+                for(var j = 0, innerListLen = innerList.length; j < innerListLen; j++) {
+                    innerListItem = innerList[j];
+                    threeBoxItemHTML += '<div class="three_box_item">' + 
+                        '    <div>' + 
+                        '        <img src="' + innerListItem['coverLarge'] + '">' + 
+                        '        <div class="three_box_info">' + innerListItem['title'] + '</div>' + 
+                        '    </div>' + 
+                        '    <p>' + innerListItem['intro'] + '</p>' + 
+                        '</div>';
+                }
+                threeBoxListHTML += '<div class="three_box_list recommend_list">' + 
+                    '    <div class="three_box_header clearfix">' + 
+                    '        <h2>' + listItem['title'] + '</h2>' + 
+                    '        <span>更多</span>' + 
+                    '    </div>' + 
+                    '    <div class="three_box">' + threeBoxItemHTML + 
+                    '    </div>' + 
+                    '</div>';
+            }
+
+            $('.recommend').append(threeBoxListHTML);
+        },
+        initPage: function(data) {
+            if(data !== null) {
+                _tabMgr.recommendTab.recommendInfo = JSON.parse(data);
+
+                $('.recommend').empty();
+                _tabMgr.recommendTab.initHotRecommendsPanel(_tabMgr.recommendTab.recommendInfo['hotRecommends']);
+            }
+        },
+        init: function() {
+            if(_tabMgr.recommendTab.recommendInfo === null) {
+                _httpRequest.recommend.getIndexPageData(_tabMgr.recommendTab.initPage);
             }
         }
     }
@@ -342,6 +409,15 @@ var _httpRequest = {
         RANK_INDEX_API: "http://mobile.ximalaya.com/mobile/discovery/v2/rankingList/group?includeActivity=true&includeSpecial=true&scale=2&device=#{device}&version=#{version}",
         getIndexPageData: function(callback) {
             _httpRequest.baseRequest(_httpRequest.getAPI(this.RANK_INDEX_API, _httpRequest.API_CONFIG), callback);
+        }
+    },
+    /**
+     * 热门
+     */
+    recommend: {
+        RECOMMEND_INDEX_API: "http://mobile.ximalaya.com/mobile/discovery/v3/recommend/hotAndGuess?device=#{device}&version=#{version}",
+        getIndexPageData: function(callback) {
+            _httpRequest.baseRequest(_httpRequest.getAPI(this.RECOMMEND_INDEX_API, _httpRequest.API_CONFIG), callback);
         }
     }
 };
