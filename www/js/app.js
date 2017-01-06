@@ -75,8 +75,6 @@ var XMLYRank = {
         for (var i = 0, len = list.length; i < len; i++) {
             item = list[i];
 
-
-
             rankListItemHTML += ['<div class="l_fixed_item">',
                 '    <div class="l_fixed_cover">',
                 '        <img src="' + item['coverMiddle'] + '" />',
