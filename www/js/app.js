@@ -23,8 +23,109 @@ var App = {
 
         // 主页 tab 切换事件
         _tabMgr.attachEvent();
+        // 榜单
+        XMLYRank.attachEvent();
+        // UI 事件
+        XMLYUI.attachEvent();
     }
 };
+
+/**
+ * 处理榜单
+ */
+var XMLYRank = {
+    attachEvent: function() {
+        $(document).on('click', '.rank_list >.l_fixed_item', function(e) {
+            var target = $(e.currentTarget);
+
+            XMLYRank.appendRankList(target.attr('data-title'), target.attr('data-contentType'), target.attr('data-rankingListId'));
+        });
+    },
+    appendRankList: function(title, contentType, rankingListId, pageId, subCategoryId) {
+        pageId = typeof pageId === 'undefined' ? 1 : pageId;
+        subCategoryId = typeof subCategoryId === 'undefined' ? '' : subCategoryId;
+        // 弹出遮罩
+        XMLYUI.addMask('rank_list', title);
+        // 获取数据
+        _httpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
+    },
+    appendRankListCallBack: function(data) {
+        var data = JSON.parse(data),
+            contentType = data['contentType'];
+
+        switch (contentType) {
+            case 'album': // 专辑
+                XMLYRank.appendRankListAlbum(data);
+                break;
+            case 'track': // 声音
+                break;
+            case 'anchor': // 主播
+                break;
+            default:
+                break;
+        }
+    },
+    appendRankListAlbum: function(data) {
+        var hasCategories = data.categories && data.categories.length > 0 ? true : false,
+            list = data['list'],
+            item = null,
+            rankListTpl = null,
+            rankListItemHTML = '';
+
+        for (var i = 0, len = list.length; i < len; i++) {
+            item = list[i];
+
+
+
+            rankListItemHTML += ['<div class="l_fixed_item">',
+                '    <div class="l_fixed_cover">',
+                '        <img src="' + item['coverMiddle'] + '" />',
+                '    </div>',
+                '    <div class="l_fixed_desc">',
+                '        <h2>' + item['title'] + '</h2>',
+                '        <p>' + item['intro'] + '</p>',
+                '        <p>' + (item['isPaid'] ? '评分 ' + item['score'] : item['tracksCounts'] + ' 集') + '</p>',
+                '    </div>',
+                '</div>'].join('');
+        }
+
+        rankListTpl = '<div data-contentType="' + data['contentType'] +
+            '" data-rankingListId="' + data['rankingListId'] +
+            '" data-maxPageId="' + data['maxPageId'] +
+            '" data-pageId="' + data['pageId'] +
+            '" data-key="' + data['key'] + '" class="l_fixed_list rank_item_list clearfix">' + rankListItemHTML + '</div>';
+
+        XMLYUI.addMaskContent(rankListTpl, '.mask.rank_list');
+    }
+}
+
+var XMLYUI = {
+    attachEvent: function() {
+        // 弹出层关闭操作
+        $(document).on('click', '.close_btn', function(e) {
+            var mask = $(e.target).parents('.mask');
+            mask.fadeOut(function() {
+                mask.remove();
+            });
+        });
+    },
+    addMask: function(clazz, title) {
+        $(bb.screen.currentScreen).append($('<div class="mask ' + (typeof clazz === 'undefined' ? '' : clazz) + '">' +
+            '    <div class="head">' +
+            '        <div class="title">' + (typeof title === 'undefined' ? '' : title) + '</div>' +
+            '        <button class="close_btn">X</button>' +
+            '    </div>' +
+            '    <div class="content_box_wrapper">' +
+            '       <div class="content_box"></div>' +
+            '   </div>' +
+            '</div>'));
+
+        $('.mask:last-child').fadeIn();
+    },
+    addMaskContent: function(content, selector) {
+        $((typeof selector === 'undefined' ? '.mask' : selector) + ' .content_box').append(content);
+    }
+}
 
 var _tabMgr = {
     // 当前开放的功能
@@ -47,14 +148,14 @@ var _tabMgr = {
                 if($.inArray(item['contentType'], _tabMgr.currentTabs) !== -1) {
                     _tabMgr.crtLen++;
 
-                    headerLis += '<li>' + 
-                        '   <a href="javascript:void(0);" data-content_type="' + item['contentType'] + '">' + item['title'] + '</a>' + 
+                    headerLis += '<li>' +
+                        '   <a href="javascript:void(0);" data-content_type="' + item['contentType'] + '">' + item['title'] + '</a>' +
                         '</li>';
 
-                    contentLis += '<li class="' + item['contentType'] + '">' + 
-                        '   <div class="loading">' + 
-                        '       <img src="img/loading.gif">' + 
-                        '   </div>' + 
+                    contentLis += '<li class="' + item['contentType'] + '">' +
+                        '   <div class="loading">' +
+                        '       <img src="img/loading.gif">' +
+                        '   </div>' +
                         '</li>';
                 }
             }
@@ -140,7 +241,6 @@ var _tabMgr = {
                     item = list[i];
                     if(!item.isPaid) {
                         lis += '<div>' +
-                            // '   <a href="javascript:void(0);" data-obj="' + JSON.stringify(item) + '">' +
                             '   <a href="javascript:void(0);">' +
                             '       <img src="' + item.coverPath + '" >' + item.title +
                             '   </a>' +
@@ -182,20 +282,20 @@ var _tabMgr = {
                         listItem = list[j];
                         firstKResults = listItem['firstKResults'];
 
-                        rankItemHTML += ['<div class="l_fixed_item" data-firstId="' + listItem['firstId'] + '">',
+                        rankItemHTML += ['<div class="l_fixed_item" data-title="' + listItem['title'] + '" data-contentType="' + listItem['contentType'] + '" data-rankingListId="' + listItem['rankingListId'] + '">',
                             '    <div class="l_fixed_cover">',
                             '        <img src="' + listItem['coverPath'] + '" />',
                             '    </div>',
                             '    <div class="l_fixed_desc">',
                             '        <h2>' + listItem['title'] + '</h2>',
-                            '        <p data-id="' + firstKResults[0].id + '">1. ' + firstKResults[0].title + '</p>',
-                            '        <p data-id="' + firstKResults[1].id + '">2. ' + firstKResults[1].title + '</p>',
+                            '        <p>1. ' + firstKResults[0].title + '</p>',
+                            '        <p>2. ' + firstKResults[1].title + '</p>',
                             '    </div>',
                             '</div>'].join('');
                     }
 
-                    rankListTpl += '<div class="l_fixed_list rank_list clearfix">' + 
-                        '   <div class="l_fixed_title">' + dataItem['title'] + '</div>' + rankItemHTML
+                    rankListTpl += '<div class="l_fixed_list rank_list clearfix">' +
+                        '   <div class="l_fixed_title">' + dataItem['title'] + '</div>' + rankItemHTML +
                         '</div>';
                 }
 
@@ -234,23 +334,23 @@ var _tabMgr = {
 
                     listItem = list[j];
                     if(displayStyle === 1) {
-                        itemHTML += '<div class="three_box_item" data-uid="' + listItem['uid'] + '">' + 
-                            '    <div>' + 
-                            '        <img src="' + listItem['largeLogo'] + '">' + 
-                            '        <div class="three_box_info">' + listItem['nickname'] + '</div>' + 
-                            '    </div>' + 
-                            '    <p>' + (listItem['verifyTitle'] || listItem['personDescribe'] || '') + '</p>' + 
+                        itemHTML += '<div class="three_box_item" data-uid="' + listItem['uid'] + '">' +
+                            '    <div>' +
+                            '        <img src="' + listItem['largeLogo'] + '">' +
+                            '        <div class="three_box_info">' + listItem['nickname'] + '</div>' +
+                            '    </div>' +
+                            '    <p>' + (listItem['verifyTitle'] || listItem['personDescribe'] || '') + '</p>' +
                             '</div>';
                     }else {
-                        itemHTML += '<div class="singer_item" data-uid="' + listItem['uid'] + '">' + 
-                            '    <div class="l_fixed_cover radius">' + 
-                            '        <img src="' + listItem['largeLogo'] + '">' + 
-                            '    </div>' + 
-                            '    <div class="l_fixed_desc">' + 
-                            '        <h2>' + listItem['nickname'] + '</h2>' + 
-                            '        <p class="singler_desc">' + listItem['personDescribe'] + '</p>' + 
-                            '        <p class="singler_followers">关注: ' + listItem['followersCounts'] + '</p>' + 
-                            '    </div>' + 
+                        itemHTML += '<div class="singer_item" data-uid="' + listItem['uid'] + '">' +
+                            '    <div class="l_fixed_cover radius">' +
+                            '        <img src="' + listItem['largeLogo'] + '">' +
+                            '    </div>' +
+                            '    <div class="l_fixed_desc">' +
+                            '        <h2>' + listItem['nickname'] + '</h2>' +
+                            '        <p class="singler_desc">' + listItem['personDescribe'] + '</p>' +
+                            '        <p class="singler_followers">关注: ' + listItem['followersCounts'] + '</p>' +
+                            '    </div>' +
                             '</div>';
                     }
                 }
@@ -261,11 +361,11 @@ var _tabMgr = {
                     itemHTML = '<div class="singer_box">' + itemHTML + '</div>';
                 }
 
-                anchorListHTML += '<div class="anchor_list three_box_list">' + 
-                    '    <div class="three_box_header clearfix">' + 
-                    '        <h2>' + dataItem['title'] + '</h2>' + 
+                anchorListHTML += '<div class="anchor_list three_box_list">' +
+                    '    <div class="three_box_header clearfix">' +
+                    '        <h2>' + dataItem['title'] + '</h2>' +
                     '        <span>更多</span>' +
-                    '    </div>' +  itemHTML + 
+                    '    </div>' +  itemHTML +
                     '</div>';
             }
 
@@ -305,21 +405,21 @@ var _tabMgr = {
                 threeBoxItemHTML = '';
                 for(var j = 0, innerListLen = innerList.length; j < innerListLen; j++) {
                     innerListItem = innerList[j];
-                    threeBoxItemHTML += '<div class="three_box_item">' + 
-                        '    <div>' + 
-                        '        <img src="' + innerListItem['coverLarge'] + '">' + 
-                        '        <div class="three_box_info">' + innerListItem['title'] + '</div>' + 
-                        '    </div>' + 
-                        '    <p>' + innerListItem['intro'] + '</p>' + 
+                    threeBoxItemHTML += '<div class="three_box_item">' +
+                        '    <div>' +
+                        '        <img src="' + innerListItem['coverLarge'] + '">' +
+                        '        <div class="three_box_info">' + innerListItem['title'] + '</div>' +
+                        '    </div>' +
+                        '    <p>' + innerListItem['intro'] + '</p>' +
                         '</div>';
                 }
-                threeBoxListHTML += '<div class="three_box_list recommend_list">' + 
-                    '    <div class="three_box_header clearfix">' + 
-                    '        <h2>' + listItem['title'] + '</h2>' + 
-                    '        <span>更多</span>' + 
-                    '    </div>' + 
-                    '    <div class="three_box">' + threeBoxItemHTML + 
-                    '    </div>' + 
+                threeBoxListHTML += '<div class="three_box_list recommend_list">' +
+                    '    <div class="three_box_header clearfix">' +
+                    '        <h2>' + listItem['title'] + '</h2>' +
+                    '        <span>更多</span>' +
+                    '    </div>' +
+                    '    <div class="three_box">' + threeBoxItemHTML +
+                    '    </div>' +
                     '</div>';
             }
 
@@ -409,6 +509,21 @@ var _httpRequest = {
         RANK_INDEX_API: "http://mobile.ximalaya.com/mobile/discovery/v2/rankingList/group?includeActivity=true&includeSpecial=true&scale=2&device=#{device}&version=#{version}",
         getIndexPageData: function(callback) {
             _httpRequest.baseRequest(_httpRequest.getAPI(this.RANK_INDEX_API, _httpRequest.API_CONFIG), callback);
+        },
+        rankItem: {
+            RANK_ITEM_LIST_API: "http://mobile.ximalaya.com/mobile/discovery/v3/rankingList/#{contentType}?pageId=#{pageId}&rankingListId=#{rankingListId}&subCategoryId=#{subCategoryId}&pageSize=20&target=main&device=#{device}&version=#{version}",
+            getRankItemList: function(callback, contentType, pageId, rankingListId, subCategoryId) {
+                var para = {
+                    contentType: contentType,
+                    pageId: pageId,
+                    rankingListId: rankingListId,
+                    subCategoryId: subCategoryId
+                };
+
+                $.extend(para, _httpRequest.API_CONFIG);
+
+                _httpRequest.baseRequest(_httpRequest.getAPI(this.RANK_ITEM_LIST_API, para), callback);
+            }
         }
     },
     /**
