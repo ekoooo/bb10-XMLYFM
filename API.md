@@ -40,7 +40,11 @@
 */
 
 参数说明: 
-track: 榜单列表数据 contentType 参数值
+track: 榜单列表数据 contentType 参数值 (根据这个字值显示不同样式列表, 目前知道有)
+    contentType=track; // 声音
+    contentType=album; // 专辑
+    contentType=anchor; // 主播
+
 rankingListId: 榜单列表数据 rankingListId 参数值
 subCategoryId: 榜单列表数据 categories.id 参数值
 ```
