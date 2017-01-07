@@ -16,7 +16,7 @@ var App = {
             }
 
             if(App.ACTION_BAR_HEIGHT === 0) {
-                App.ACTION_BAR_HEIGHT = $('div[data-bb-type="action-bar"]').height();
+                App.ACTION_BAR_HEIGHT = bb.screen.getActionBarHeight();
                 App.BB_SCREEN_HEIGHT = $('.bb-screen').height();
             }
         });
@@ -34,6 +34,7 @@ var App = {
  * 处理榜单
  */
 var XMLYRank = {
+    isReading: false,
     attachEvent: function() {
         $(document).on('click', '.rank_list >.l_fixed_item', function(e) {
             var target = $(e.currentTarget);
@@ -53,21 +54,177 @@ var XMLYRank = {
         var data = JSON.parse(data),
             contentType = data['contentType'];
 
+        XMLYRank.appendRankListSubCates(data['categories']);
         switch (contentType) {
             case 'album': // 专辑
                 XMLYRank.appendRankListAlbum(data);
                 break;
             case 'track': // 声音
+                XMLYRank.appendRankListTrack(data);
                 break;
             case 'anchor': // 主播
+                XMLYRank.appendRankListAnchor(data);
                 break;
             default:
                 break;
         }
+
+        XMLYRank.isReading = false;
+    },
+    appendRankListAnchor: function(data) {
+        var list = data['list'],
+            item = null,
+            rankListTpl = null,
+            rankListItemHTML = '';
+
+        for (var i = 0, len = list.length; i < len; i++) {
+            item = list[i];
+
+            rankListItemHTML += ['<div class="l_fixed_item">',
+                '    <div class="l_fixed_cover">',
+                '        <img src="' + item['largeLogo'] + '" />',
+                '    </div>',
+                '    <div class="l_fixed_desc">',
+                '        <h2>' + item['nickname'] + '</h2>',
+                '        <p>' + (item['verifyTitle'] || item['personDescribe']) + '</p>',
+                '        <p>粉丝 ' + item['followersCounts'] + '</p>',
+                '    </div>',
+                '</div>'].join('');
+        }
+
+        rankListTpl = '<div data-contentType="' + data['contentType'] +
+            '" data-rankingListId="' + data['rankingListId'] +
+            '" data-maxPageId="' + data['maxPageId'] +
+            '" data-pageId="' + data['pageId'] +
+            '" data-key="' + data['key'] + '" class="l_fixed_list rank_item_list clearfix">' + rankListItemHTML + '</div>';
+
+        XMLYUI.addMaskContent(rankListTpl, '.mask.rank_list');
+    },
+    appendRankListTrack: function(data) {
+        var list = data['list'],
+            item = null,
+            rankListTpl = null,
+            rankListItemHTML = '';
+
+        for (var i = 0, len = list.length; i < len; i++) {
+            item = list[i];
+
+            rankListItemHTML += ['<div class="l_fixed_item">',
+                '    <div class="l_fixed_cover radius track">',
+                '        <img src="' + item['coverSmall'] + '" />',
+                '    </div>',
+                '    <div class="l_fixed_desc">',
+                '        <h2>' + item['title'] + '</h2>',
+                '        <p>演播 ' + item['nickname'] + '</p>',
+                '        <p>' + (typeof (item['tags'] === 'undefined' || item['tags'] === '') ? '专辑 ' + item['albumTitle'] : '标签 ' + item['tags']) + '</p>',
+                '    </div>',
+                '</div>'].join('');
+        }
+
+        rankListTpl = '<div data-contentType="' + data['contentType'] +
+            '" data-rankingListId="' + data['rankingListId'] +
+            '" data-maxPageId="' + data['maxPageId'] +
+            '" data-pageId="' + data['pageId'] +
+            '" data-key="' + data['key'] + '" class="l_fixed_list rank_item_list clearfix">' + rankListItemHTML + '</div>';
+
+        XMLYUI.addMaskContent(rankListTpl, '.mask.rank_list');
+    },
+    attachCatesEvent: function() {
+        // 展开, 收起
+        $('.subcates_switch_btn').on('click', function(e) {
+            var subcates = $(e.currentTarget).parents('.subcates');
+
+            if('hidden' === subcates.css('overflow')) {
+                subcates.css('overflow', 'visible');
+            }else {
+                subcates.css('overflow', 'hidden');
+            }
+        });
+
+        // 点击过滤
+        $('.mask.rank_list .subcates li:not(.subcates_switch_btn)').on('click', function(e) {
+            var target = $(e.currentTarget);
+
+            target.siblings().removeClass('active');
+            target.addClass('active');
+
+            var rankItemList = $('.mask.rank_list .content_box .rank_item_list'),
+                contentType = rankItemList.attr('data-contentType'),
+                pageId = rankItemList.attr('data-pageId'),
+                rankingListId = rankItemList.attr('data-rankingListId'),
+                subCategoryId = target.attr('data-id');
+
+            // 清空
+            $('.mask.rank_list .content_box').empty().append('<div class="subcates_placeholder"></div>');
+
+            _httpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
+        });
+
+        // 滚动加载
+        $('.mask.rank_list .content_box_wrapper').on('scroll', function(e) {
+            var target = $(e.currentTarget);
+
+            var boxH = App.BB_SCREEN_HEIGHT,
+                topH = target.scrollTop(),
+                contentH = target.find('.content_box').height();
+
+            if(!XMLYRank.isReading && boxH + topH >= contentH) {
+                XMLYRank.isReading = true;
+
+                var rankItemList = $('.mask.rank_list .content_box .rank_item_list:last-child'),
+                    contentType = rankItemList.attr('data-contentType'),
+                    pageId = Number(rankItemList.attr('data-pageId')) + 1,
+                    maxPageId = rankItemList.attr('data-maxPageId'),
+                    rankingListId = rankItemList.attr('data-rankingListId'),
+                    subCategoryId = $('.mask.rank_list .subcates li.active').attr('data-id');
+
+                subCategoryId = typeof subCategoryId === 'undefined' ? '' : subCategoryId;
+
+                if(pageId > maxPageId || !rankItemList[0]) {
+                    if(!target.find('.loaded')[0]) {
+                        XMLYUI.addMaskContent('<p class="loaded">已加载完成!</p>');
+                    }
+
+                    setTimeout(function() {
+                        XMLYRank.isReading = false;
+                    }, 2000);
+                    return;
+                }
+
+                _httpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
+            }
+        });
+    },
+    appendRankListSubCates: function(categories) {
+        // 判断是否已经添加过
+        if($('.mask.rank_list .subcates')[0]) {
+            return;
+        }
+
+        var hasCategories = categories && categories.length > 0 ? true : false;
+        if(hasCategories) {
+            var item = null, 
+                liTpl = '<li class="active" data-id=""><a href="javascript:void(0)">总榜</a></li>';
+
+            for(var i = 0, len = categories.length; i < len; i++){
+                item = categories[i];
+                if(i === 3) {
+                    liTpl += '<li class="subcates_switch_btn"><a href="javascript:void(0)">打开 / 收起</a></li>';
+                }
+                liTpl += '<li data-id="' + item['id'] + '" data-key="' + item['key'] + '"><a href="javascript:void(0)">' + item['name'] + '</a></li>';
+            }
+
+            $('.mask.rank_list .content_box').append('<div class="subcates_placeholder"></div>');
+            $('.mask.rank_list .head').after('<div class="subcates">' + 
+                '    <ul class="clearfix">' + liTpl + '</ul>' + 
+                '</div>');
+        }
+
+        // 监听事件
+        this.attachCatesEvent();
     },
     appendRankListAlbum: function(data) {
-        var hasCategories = data.categories && data.categories.length > 0 ? true : false,
-            list = data['list'],
+        var list = data['list'],
             item = null,
             rankListTpl = null,
             rankListItemHTML = '';

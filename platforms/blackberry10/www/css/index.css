@@ -120,6 +120,7 @@ body {
     padding-left: 2.5rem;
 }
 .l_fixed_cover {
+    position: relative;
     float: left;
     width: 10rem;
     height: 12rem;
@@ -131,6 +132,17 @@ body {
 }
 .l_fixed_cover.radius img {
     border-radius: 50%;
+}
+.l_fixed_cover.track:after {
+      position: absolute;
+      content: '';
+      background: url(../img/play_cover.png) no-repeat;
+      background-size: 100%;
+      background-position: center bottom;
+      width: 100%;
+      height: 100%;
+      left: 0;
+      top: 0;
 }
 .l_fixed_desc {
     margin-left: 12.5rem;
@@ -214,6 +226,10 @@ body {
     text-align: center;
     margin-top: 2rem;
 }
+.loaded {
+    text-align: center;
+    color: #999;
+}
 /*弹出遮罩 start*/
 .mask {
     opacity: 0;
@@ -235,7 +251,7 @@ body {
     width: 100%;
     height: 6rem;
     line-height: 6rem;
-    font-size: 2rem;
+    font-size: 2.5rem;
     text-align: center;
     border-bottom: 1px solid #eee;
     background: -webkit-linear-gradient(top, #fff 0%, #eee 100%);
@@ -272,3 +288,38 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 /*弹出遮罩 end*/
+/*分类中子分类 start*/
+.subcates_placeholder {
+    height: 6rem;
+}
+.subcates {
+    position: fixed;
+    z-index: 10;
+    top: 6rem;
+    left: 0;
+    width: 100%;
+    height: 6rem;
+    line-height: 6rem;
+    font-size: 2.5rem;
+    text-align: center;
+    overflow: hidden;
+    border-bottom: 0.1rem solid #eee;
+}
+.subcates ul {
+    background-color: #fff;
+}
+.subcates li {
+    float: left;
+    width: 20%;
+}
+.subcates li.active {
+    font-weight: bold;
+    font-style: italic;
+}
+.subcates li a {
+    display: block;
+}
+.subcates_switch_btn a {
+    color: #0BDED7;
+}
+/*分类中子分类 end*/
