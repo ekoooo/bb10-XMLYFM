@@ -48,3 +48,15 @@ track: 榜单列表数据 contentType 参数值 (根据这个字值显示不同�
 rankingListId: 榜单列表数据 rankingListId 参数值
 subCategoryId: 榜单列表数据 categories.id 参数值
 ```
+
+#### 声音基本信息:
+http://mobile.ximalaya.com/v1/track/baseInfo?device=android&trackId=28644975
+
+#### 声音基本信息:
+http://mobile.ximalaya.com/v1/track/ca/playpage/28644975?device=android&trackId=28644975
+
+#### 专辑信息: 
+http://mobile.ximalaya.com/mobile/v1/album/track?albumId=4756811&pageId=3&pageSize=20&device=android&isAsc=true
+
+#### 声音评论: 
+http://mobile.ximalaya.com/mobile/track/comment?pageId=1&pageSize=20&trackId=28509037
