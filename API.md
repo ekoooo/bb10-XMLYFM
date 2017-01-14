@@ -1,34 +1,14 @@
 ## TABS
-```javascript
-/*
-示例: 
-1. http://mobile.ximalaya.com/mobile/discovery/v2/tabs?device=android&version=5.4.63
-*/
-```
+http://mobile.ximalaya.com/mobile/discovery/v2/tabs?device=android&version=5.4.63
 
 ## 主播 TAB
-```javascript
-/*
-示例: 
-1. http://mobile.ximalaya.com/mobile/discovery/v1/anchor/recommend?device=android&version=5.4.63
-*/
-```
+http://mobile.ximalaya.com/mobile/discovery/v1/anchor/recommend?device=android&version=5.4.63
 
 ## 分类 TAB
-```javascript
-/*
-示例: 
-1. http://mobile.ximalaya.com/mobile/discovery/v2/categories?channel=&device=android&picVersion=13&scale=2&version=5.4.63
-*/
-```
+http://mobile.ximalaya.com/mobile/discovery/v2/categories?channel=&device=android&picVersion=13&scale=2&version=5.4.63
 
 ## 榜单
-```javascript
-/*
-示例: 
-1. http://mobile.ximalaya.com/mobile/discovery/v2/rankingList/group?device=android&includeActivity=true&includeSpecial=true&scale=2&version=5.4.63
-*/
-```
+http://mobile.ximalaya.com/mobile/discovery/v2/rankingList/group?device=android&includeActivity=true&includeSpecial=true&scale=2&version=5.4.63
 
 #### 榜单列表点击进入
 ```javascript
@@ -60,3 +40,12 @@ http://mobile.ximalaya.com/mobile/v1/album/track?albumId=4756811&pageId=3&pageSi
 
 #### 声音评论: 
 http://mobile.ximalaya.com/mobile/track/comment?pageId=1&pageSize=20&trackId=28509037
+
+#### 主播基本信息:
+http://www.ximalaya.com/mobile/v1/artist/intro?device=android&toUid=1266964
+
+#### 主播专辑:
+http://mobile.ximalaya.com/mobile/v1/artist/albums?toUid=1266964&pageSize=15&pageId=1
+
+#### 主播全部声音:
+http://mobile.ximalaya.com/mobile/v1/artist/tracks?device=android&pageId=1&pageSize=15&&toUid=1266964

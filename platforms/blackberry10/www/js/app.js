@@ -3,13 +3,13 @@ var App = {
     BB_SCREEN_HEIGHT: 0,
     initApp: function() {
         this.attachEvent();
-        _screenMgr.index();
+        ScreenMgr.index();
     },
     attachEvent: function() {
         $(document).on('bb_ondomready', function(e, obj) {
             switch (obj.id) {
                 case "index":
-                    _tabMgr.init();
+                    TabMgr.init();
                     break;
                 default:
                     break;
@@ -22,7 +22,7 @@ var App = {
         });
 
         // 主页 tab 切换事件
-        _tabMgr.attachEvent();
+        TabMgr.attachEvent();
         // 榜单
         XMLYRank.attachEvent();
         // UI 事件
@@ -48,7 +48,7 @@ var XMLYRank = {
         // 弹出遮罩
         XMLYUI.addMask('rank_list', title);
         // 获取数据
-        _httpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
+        HttpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
     },
     appendRankListCallBack: function(data) {
         var data = JSON.parse(data),
@@ -157,7 +157,7 @@ var XMLYRank = {
             // 清空
             $('.mask.rank_list .content_box').empty().append('<div class="subcates_placeholder"></div>');
 
-            _httpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
+            HttpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
         });
 
         // 滚动加载
@@ -191,7 +191,7 @@ var XMLYRank = {
                     return;
                 }
 
-                _httpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
+                HttpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
             }
         });
     },
@@ -254,6 +254,9 @@ var XMLYRank = {
     }
 }
 
+/**
+ * 界面处理
+ */
 var XMLYUI = {
     attachEvent: function() {
         // 弹出层关闭操作
@@ -282,26 +285,30 @@ var XMLYUI = {
     }
 }
 
-var _tabMgr = {
+/**
+ * 处理主页 Tab 以及其内容
+ */
+var TabMgr = {
     // 当前开放的功能
     currentTabs: ['recommend', 'category', 'ranking', 'anchor'],
     tabsHeaderInfo: null,
     crtLen: 0,
+
     initPage: function(data) {
         if(data !== null) {
-            _tabMgr.tabsHeaderInfo = JSON.parse(data);
+            TabMgr.tabsHeaderInfo = JSON.parse(data);
 
-            var list = _tabMgr.tabsHeaderInfo.tabs.list,
-                len = _tabMgr.tabsHeaderInfo.tabs.count,
+            var list = TabMgr.tabsHeaderInfo.tabs.list,
+                len = TabMgr.tabsHeaderInfo.tabs.count,
                 item = null,
                 headerLis = '';
                 contentLis = '';
 
-            _tabMgr.crtLen = 0;
+            TabMgr.crtLen = 0;
             for (var i = 0; i < len; i++) {
                 item = list[i];
-                if($.inArray(item['contentType'], _tabMgr.currentTabs) !== -1) {
-                    _tabMgr.crtLen++;
+                if($.inArray(item['contentType'], TabMgr.currentTabs) !== -1) {
+                    TabMgr.crtLen++;
 
                     headerLis += '<li>' +
                         '   <a href="javascript:void(0);" data-content_type="' + item['contentType'] + '">' + item['title'] + '</a>' +
@@ -325,45 +332,48 @@ var _tabMgr = {
                 contentLi = contentUl.find('li');
 
             contentUl.css({
-                width: 100 * _tabMgr.crtLen + '%'
+                width: 100 * TabMgr.crtLen + '%'
             });
             headerLi.css({
-                width: 100 / _tabMgr.crtLen + '%'
+                width: 100 / TabMgr.crtLen + '%'
             });
             contentLi.css({
-                width: 100 / _tabMgr.crtLen + '%',
+                width: 100 / TabMgr.crtLen + '%',
                 height: App.BB_SCREEN_HEIGHT - App.ACTION_BAR_HEIGHT - $('.tab_header').height()
             });
 
             headerLi.eq(0).find('a').addClass('active');
 
             // tab 初始化结束之后默认加载`热门`标签页内容
-            _tabMgr.recommendTab.init();
+            TabMgr.recommendTab.init();
         }
     },
+
     init: function() {
-        if(_tabMgr.tabsHeaderInfo === null) {
-            _httpRequest.tabs.getData(_tabMgr.initPage);
+        if(TabMgr.tabsHeaderInfo === null) {
+            HttpRequest.tabs.getData(TabMgr.initPage);
         }
     },
+
     switchTab: function(contentType) {
         switch (contentType) {
             case "category": // 分类
-                _tabMgr.categoryTab.init();
+                TabMgr.categoryTab.init();
                 break;
             case "ranking": // 榜单
-                _tabMgr.rankTab.init();
+                TabMgr.rankTab.init();
                 break;
             case "anchor": // 主播
-                _tabMgr.anchorTab.init();
+                TabMgr.anchorTab.init();
                 break;
             case "recommend": // 热门
-                _tabMgr.recommendTab.init();
+                TabMgr.recommendTab.init();
                 break;
             default:
                 break;
         }
     },
+
     attachEvent: function() {
         $(document).on('click', '.tab_container .tab_header a', function(e) {
             var target = $(e.currentTarget);
@@ -375,18 +385,19 @@ var _tabMgr = {
                     marginLeft: -100 * target.parent().index() + '%'
                 });
 
-                _tabMgr.switchTab(target.attr('data-content_type'));
+                TabMgr.switchTab(target.attr('data-content_type'));
             }
         });
     },
+
     // 分类 tab
     categoryTab: {
         cateInfo: null,
         initPage: function(data) {
             if(data !== null) {
-                _tabMgr.categoryTab.cateInfo = JSON.parse(data);
+                TabMgr.categoryTab.cateInfo = JSON.parse(data);
 
-                var list = _tabMgr.categoryTab.cateInfo.list,
+                var list = TabMgr.categoryTab.cateInfo.list,
                     len = list.length,
                     category = $('.category'),
                     lis = '',
@@ -407,8 +418,8 @@ var _tabMgr = {
             }
         },
         init: function() {
-            if(_tabMgr.categoryTab.cateInfo === null) {
-                _httpRequest.cate.getIndexPageData(_tabMgr.categoryTab.initPage);
+            if(TabMgr.categoryTab.cateInfo === null) {
+                HttpRequest.cate.getIndexPageData(TabMgr.categoryTab.initPage);
             }
         }
     },
@@ -417,9 +428,9 @@ var _tabMgr = {
         rankInfo: null,
         initPage: function(data) {
             if(data !== null) {
-                _tabMgr.rankTab.rankInfo = JSON.parse(data);
+                TabMgr.rankTab.rankInfo = JSON.parse(data);
 
-                var datas = _tabMgr.rankTab.rankInfo.datas,
+                var datas = TabMgr.rankTab.rankInfo.datas,
                     dataLen = datas.length,
                     dataItem = null,
                     list = null,
@@ -458,8 +469,8 @@ var _tabMgr = {
             }
         },
         init: function() {
-            if(_tabMgr.rankTab.rankInfo === null) {
-                _httpRequest.rank.getIndexPageData(_tabMgr.rankTab.initPage);
+            if(TabMgr.rankTab.rankInfo === null) {
+                HttpRequest.rank.getIndexPageData(TabMgr.rankTab.initPage);
             }
         }
     },
@@ -528,16 +539,16 @@ var _tabMgr = {
         },
         initPage: function(data) {
             if(data !== null) {
-                _tabMgr.anchorTab.anchorInfo = JSON.parse(data);
+                TabMgr.anchorTab.anchorInfo = JSON.parse(data);
 
                 $('.anchor').empty();
-                _tabMgr.anchorTab.initPageItem(_tabMgr.anchorTab.anchorInfo['famous']);
-                _tabMgr.anchorTab.initPageItem(_tabMgr.anchorTab.anchorInfo['normal'], 3);
+                TabMgr.anchorTab.initPageItem(TabMgr.anchorTab.anchorInfo['famous']);
+                TabMgr.anchorTab.initPageItem(TabMgr.anchorTab.anchorInfo['normal'], 3);
             }
         },
         init: function() {
-            if(_tabMgr.anchorTab.anchorInfo === null) {
-                _httpRequest.anchor.getIndexPageData(_tabMgr.anchorTab.initPage);
+            if(TabMgr.anchorTab.anchorInfo === null) {
+                HttpRequest.anchor.getIndexPageData(TabMgr.anchorTab.initPage);
             }
         }
     },
@@ -582,27 +593,33 @@ var _tabMgr = {
         },
         initPage: function(data) {
             if(data !== null) {
-                _tabMgr.recommendTab.recommendInfo = JSON.parse(data);
+                TabMgr.recommendTab.recommendInfo = JSON.parse(data);
 
                 $('.recommend').empty();
-                _tabMgr.recommendTab.initHotRecommendsPanel(_tabMgr.recommendTab.recommendInfo['hotRecommends']);
+                TabMgr.recommendTab.initHotRecommendsPanel(TabMgr.recommendTab.recommendInfo['hotRecommends']);
             }
         },
         init: function() {
-            if(_tabMgr.recommendTab.recommendInfo === null) {
-                _httpRequest.recommend.getIndexPageData(_tabMgr.recommendTab.initPage);
+            if(TabMgr.recommendTab.recommendInfo === null) {
+                HttpRequest.recommend.getIndexPageData(TabMgr.recommendTab.initPage);
             }
         }
     }
 };
 
-var _screenMgr = {
+/**
+ * 统一处理 bbui 页面更换
+ */
+var ScreenMgr = {
     index: function() {
         bb.pushScreen('app.html', 'index');
     }
 };
 
-var _httpRequest = {
+/**
+ * 处理喜马拉雅数据
+ */
+var HttpRequest = {
     API_CONFIG: {
         "device": "android",
         "version": "5.4.63"
@@ -636,7 +653,7 @@ var _httpRequest = {
     tabs: {
         API: "http://mobile.ximalaya.com/mobile/discovery/v2/tabs?device=#{device}&version=#{version}",
         getData: function(callback) {
-            _httpRequest.baseRequest(_httpRequest.getAPI(this.API, _httpRequest.API_CONFIG), callback);
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.API, HttpRequest.API_CONFIG), callback);
         }
     },
     /**
@@ -645,7 +662,7 @@ var _httpRequest = {
     cate: {
         CATE_INDEX_API: "http://mobile.ximalaya.com/mobile/discovery/v2/categories?channel=&picVersion=13&scale=2&device=#{device}&version=#{version}",
         getIndexPageData: function(callback) {
-            _httpRequest.baseRequest(_httpRequest.getAPI(this.CATE_INDEX_API, _httpRequest.API_CONFIG), callback);
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.CATE_INDEX_API, HttpRequest.API_CONFIG), callback);
         }
     },
     /**
@@ -654,7 +671,7 @@ var _httpRequest = {
     anchor: {
         ANCHOR_INDEX_API: "http://mobile.ximalaya.com/mobile/discovery/v1/anchor/recommend?device=#{device}&version=#{version}",
         getIndexPageData: function(callback) {
-            _httpRequest.baseRequest(_httpRequest.getAPI(this.ANCHOR_INDEX_API, _httpRequest.API_CONFIG), callback);
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_INDEX_API, HttpRequest.API_CONFIG), callback);
         }
     },
     /**
@@ -663,7 +680,7 @@ var _httpRequest = {
     rank: {
         RANK_INDEX_API: "http://mobile.ximalaya.com/mobile/discovery/v2/rankingList/group?includeActivity=true&includeSpecial=true&scale=2&device=#{device}&version=#{version}",
         getIndexPageData: function(callback) {
-            _httpRequest.baseRequest(_httpRequest.getAPI(this.RANK_INDEX_API, _httpRequest.API_CONFIG), callback);
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.RANK_INDEX_API, HttpRequest.API_CONFIG), callback);
         },
         rankItem: {
             RANK_ITEM_LIST_API: "http://mobile.ximalaya.com/mobile/discovery/v3/rankingList/#{contentType}?pageId=#{pageId}&rankingListId=#{rankingListId}&subCategoryId=#{subCategoryId}&pageSize=20&target=main&device=#{device}&version=#{version}",
@@ -675,9 +692,9 @@ var _httpRequest = {
                     subCategoryId: subCategoryId
                 };
 
-                $.extend(para, _httpRequest.API_CONFIG);
+                $.extend(para, HttpRequest.API_CONFIG);
 
-                _httpRequest.baseRequest(_httpRequest.getAPI(this.RANK_ITEM_LIST_API, para), callback);
+                HttpRequest.baseRequest(HttpRequest.getAPI(this.RANK_ITEM_LIST_API, para), callback);
             }
         }
     },
@@ -687,7 +704,7 @@ var _httpRequest = {
     recommend: {
         RECOMMEND_INDEX_API: "http://mobile.ximalaya.com/mobile/discovery/v3/recommend/hotAndGuess?device=#{device}&version=#{version}",
         getIndexPageData: function(callback) {
-            _httpRequest.baseRequest(_httpRequest.getAPI(this.RECOMMEND_INDEX_API, _httpRequest.API_CONFIG), callback);
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.RECOMMEND_INDEX_API, HttpRequest.API_CONFIG), callback);
         }
     }
 };
