@@ -79,7 +79,7 @@ body {
     float: left;
     overflow-y: auto;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    /*-webkit-overflow-scrolling: touch;*/
 }
 /*index tab end*/
 
@@ -290,7 +290,7 @@ body {
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    /*-webkit-overflow-scrolling: touch;*/
 }
 /*弹出遮罩 end*/
 /*分类中子分类 start*/
@@ -326,6 +326,12 @@ body {
 }
 .subcates_switch_btn a {
     color: #0BDED7;
+}
+.v_img {
+    vertical-align: middle;
+    height: 3.12rem;
+    margin-top: -0.5rem;
+    margin-left: 1rem;
 }
 /*分类中子分类 end*/
 

@@ -85,8 +85,8 @@ var XMLYRank = {
                 '        <img src="' + item['largeLogo'] + '" />',
                 '    </div>',
                 '    <div class="l_fixed_desc">',
-                '        <h2>' + item['nickname'] + '</h2>',
-                '        <p>' + (item['verifyTitle'] || item['personDescribe']) + '</p>',
+                '        <h2>' + item['nickname'] + (item['isVerified'] ? '<img class="v_img" src="../img/v.png">' : '') + '</h2>',
+                '        <p>' + (item['verifyTitle'] || item['personDescribe'] || '') + '</p>',
                 '        <p>粉丝 ' + item['followersCounts'] + '</p>',
                 '    </div>',
                 '</div>'].join('');
@@ -181,7 +181,7 @@ var XMLYRank = {
                 subCategoryId = typeof subCategoryId === 'undefined' ? '' : subCategoryId;
 
                 if(pageId > maxPageId || !rankItemList[0]) {
-                    if(!target.find('.loaded')[0]) {
+                    if(!target.find('.loaded')[0] && $('.mask.rank_list .content_box .rank_item_list').length > 0) {
                         XMLYUI.addMaskContent('<p class="loaded">已加载完成!</p>');
                     }
 
@@ -203,7 +203,7 @@ var XMLYRank = {
 
         var hasCategories = categories && categories.length > 0 ? true : false;
         if(hasCategories) {
-            var item = null, 
+            var item = null,
                 liTpl = '<li class="active" data-id=""><a href="javascript:void(0)">总榜</a></li>';
 
             for(var i = 0, len = categories.length; i < len; i++){
@@ -215,8 +215,8 @@ var XMLYRank = {
             }
 
             $('.mask.rank_list .content_box').append('<div class="subcates_placeholder"></div>');
-            $('.mask.rank_list .head').after('<div class="subcates">' + 
-                '    <ul class="clearfix">' + liTpl + '</ul>' + 
+            $('.mask.rank_list .head').after('<div class="subcates">' +
+                '    <ul class="clearfix">' + liTpl + '</ul>' +
                 '</div>');
         }
 
