@@ -47,6 +47,23 @@ body {
 @media only screen and (max-width: 329px) and (min-width:250px) { html, body{ font-size: 8.8955px; }.viewport{min-width: 320px;}}
 */
 
+@-webkit-keyframes img_ani {
+    0% {
+        background-position-y: center;
+    }
+    25% {
+        background-position-y: bottom;
+    }
+    50% {
+        background-position-y: center;
+    }
+    75% {
+        background-position-y: top;
+    }
+    100% {
+        background-position-y: center;
+    }
+}
 /*index tab start*/
 .tab_container {
     font-size: 2.5rem;
@@ -79,7 +96,7 @@ body {
     float: left;
     overflow-y: auto;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    /*-webkit-overflow-scrolling: touch;*/
 }
 /*index tab end*/
 
@@ -158,6 +175,10 @@ body {
     height: 3.12rem;
     overflow: hidden;
 }
+.l_fixed_desc h2.dbh2 {
+    height: 6.24rem;
+    margin-bottom: 1rem;
+}
 .l_fixed_desc p {
     line-height: 3.5rem;
     height: 3.5rem;
@@ -171,7 +192,8 @@ body {
 }
 /*tab rank end*/
 /*anchor start*/
-.three_box_list {
+.three_box_list,
+.bottom_gray_box {
     border-bottom: 2rem solid #EDECE8;
     padding-bottom: 2rem;
 }
@@ -187,7 +209,7 @@ body {
 .three_box_header h2 {
     float: left;
 }
-.three_box_header span {
+.three_box_header >span {
     float: right;
     color: #9F9F9F;
     font-style: italic;
@@ -285,7 +307,7 @@ body {
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    /*-webkit-overflow-scrolling: touch;*/
 }
 /*弹出遮罩 end*/
 /*分类中子分类 start*/
@@ -322,4 +344,62 @@ body {
 .subcates_switch_btn a {
     color: #0BDED7;
 }
+.v_img {
+    vertical-align: middle;
+    height: 3.12rem;
+    margin-top: -0.5rem;
+    margin-left: 1rem;
+}
 /*分类中子分类 end*/
+/*主播主页 start*/
+.anchor_index_box {
+    font-size: 2.5rem;
+}
+.anchor_index_banner {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: 37rem;
+    padding-left: 2rem;
+    background-color: #fff;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    background-position: center;
+    /*background-image: url(http://fdfs.xmcdn.com/group21/M05/6A/3E/wKgJLVh1KQPCRU05AAK4JTj5zPc807_mobile_x_large.jpg);*/
+    overflow: hidden;
+    color: #fff;
+    font-size: 2.3rem;
+    -webkit-animation: linear img_ani 30s infinite;
+}
+.anchor_index_banner:before {
+    position: absolute;
+    content: '';
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.3);
+    z-index: 0;
+}
+.anchor_index_banner_c {
+    position: absolute;
+}
+.anchor_index_nickname {
+    font-size: 4rem;
+    margin-top: 18rem;
+}
+.anchor_index_banner p {
+    margin-top: 1rem;
+}
+.anchor_index_intro {
+    font-size: 2.5rem;
+    padding: 1rem 2rem 2rem;
+}
+.anchor_index_intro_title {
+    font-size: 3rem;
+    margin: 1rem 0;
+}
+.anchor_index_intro p {
+    margin-top: 1rem;
+}
+/*主播主页 end*/

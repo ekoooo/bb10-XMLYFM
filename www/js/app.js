@@ -31,6 +31,122 @@ var App = {
 };
 
 /**
+ * 主播个人主页
+ */
+var AnchorIndex = {
+    ANCHOR_BLBUMS_PRE_NUM: 5,
+    ANCHOR_TRACKS_PRE_NUM: 5,
+    /**
+     * 初始化
+     * @param toUid 主播 id
+     */
+    init: function(toUid) {
+        // 初始化界面
+        XMLYUI.addMask('anchor_index_panel', '');
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '../tpl/anchorIndex.tpl', false);
+        xhr.send();
+
+        // 显示主播信息框架
+        XMLYUI.addMaskContent(xhr.responseText, '.anchor_index_panel');
+
+        /*
+         * 加载信息
+         * 1, 主播基本信息
+         * 2, 主播专辑
+         * 3, 主播声音
+         */
+        HttpRequest.anchor.getAnchorIntroData(AnchorIndex.initAnchorIntro, toUid);
+        HttpRequest.anchor.getAnchorAlbumsData(AnchorIndex.initAnchorAlbums, toUid, 1);
+        HttpRequest.anchor.getAnchorTracksData(AnchorIndex.initAnchorTracks, toUid, 1);
+    },
+    initAnchorIntro: function(data) {
+        var data = JSON.parse(data);
+        // mask title
+        XMLYUI.setMaskTitle(data.nickname);
+        // 背景
+        $('.anchor_index_banner').css({
+            backgroundImage: 'url(' + data.mobileLargeLogo + ')'
+        });
+        // 主播姓名
+        $('.anchor_index_nickname').text(data.nickname);
+        // 主播简介
+        $('.anchor_index_desc').text(data.personDescribe);
+        // 关注
+        $('.anchor_index_followings').text(data.followings);
+        // 粉丝
+        $('.anchor_index_followers').text(data.followers);
+        // 签名
+        $('.anchor_index_signature').text(data.personalSignature);
+        // 性别
+        $('.anchor_index_gender').text(data.gender === 1 ? '男' : '女');
+        // 星座
+        $('.anchor_index_constellation').text(data.constellation);
+    },
+    initAnchorAlbums: function(data) {
+        var data = JSON.parse(data),
+            list = data['list'],
+            item = null,
+            itemHTML = '';
+
+        // 默认显示最多 ANCHOR_BLBUMS_PRE_NUM 个专辑
+        for (var i = 0, len = (list.length > AnchorIndex.ANCHOR_BLBUMS_PRE_NUM ? AnchorIndex.ANCHOR_BLBUMS_PRE_NUM : list.length); i < len; i++) {
+            item = list[i];
+
+            itemHTML += ['<div class="l_fixed_item" data-uid="' + item['uid'] + '" data-albumid="' + item['albumId'] + '">',
+                '    <div class="l_fixed_cover">',
+                '        <img src="' + item['coverLarge'] + '">',
+                '    </div>',
+                '    <div class="l_fixed_desc">',
+                '        <h2>' + item['title'] + '</h2>',
+                '        <p>' + item['intro'] + '</p>',
+                '        <p>',
+                '            <span>次数 </span>',
+                '            <span>' + (item['playTimes'] || '') + '</span>',
+                '          <span>声音数量 </span>',
+                '          <span>' + item['tracks'] + '</span>',
+                '        </p>',
+                '    </div>',
+                '</div>'].join("");
+        }
+
+        $('.anchor_index_album').append(itemHTML);
+        // 专辑数量
+        $('.anchor_index_album_num').text(data.totalCount);
+    },
+    initAnchorTracks: function(data) {
+        var data = JSON.parse(data);
+            list = data['list'],
+            item = null,
+            itemHTML = '';
+
+        for (var i = 0, len = (list.length > AnchorIndex.ANCHOR_TRACKS_PRE_NUM ? AnchorIndex.ANCHOR_TRACKS_PRE_NUM : list.length); i < len; i++) {
+            item = list[i];
+            itemHTML += ['<div class="l_fixed_item">',
+                '    <div class="l_fixed_cover track radius">',
+                '        <img src="' + item['coverLarge'] + '">',
+                '    </div>',
+                '    <div class="l_fixed_desc">',
+                '        <h2 class="dbh2">' + item['title'] + '</h2>',
+                '        <p>',
+                '            <span>次数 </span>',
+                '            <span>' + item['playtimes'] + '</span>',
+                '            <span>时间 </span>',
+                '            <span>' + BB10Util.parseTime(item['duration']) + '</span>',
+                '            <span>评论 </span>',
+                '            <span>' + item['comments'] + '</span>',
+                '        </p>',
+                '    </div>',
+                '</div>'].join("");
+        }
+
+        $('.anchor_index_track').append(itemHTML);
+        // 声音数量
+        $('.anchor_index_track_num').text(data.totalCount);
+    }
+}
+
+/**
  * 处理榜单
  */
 var XMLYRank = {
@@ -84,7 +200,7 @@ var XMLYRank = {
                 '    <div class="l_fixed_cover">',
                 '        <img src="' + item['largeLogo'] + '" />',
                 '    </div>',
-                '    <div class="l_fixed_desc">',
+                '    <div class="l_fixed_desc anchor_evt_panel" data-uid="' + item['uid'] + '">',
                 '        <h2>' + item['nickname'] + (item['isVerified'] ? '<img class="v_img" src="../img/v.png">' : '') + '</h2>',
                 '        <p>' + (item['verifyTitle'] || item['personDescribe'] || '') + '</p>',
                 '        <p>粉丝 ' + item['followersCounts'] + '</p>',
@@ -266,6 +382,11 @@ var XMLYUI = {
                 mask.remove();
             });
         });
+
+        // 点击主播进入主播主页
+        $(document).on('click', '.anchor_evt_panel', function(e) {
+            AnchorIndex.init($(e.currentTarget).data('uid'));
+        });
     },
     addMask: function(clazz, title) {
         $(bb.screen.currentScreen).append($('<div class="mask ' + (typeof clazz === 'undefined' ? '' : clazz) + '">' +
@@ -282,6 +403,9 @@ var XMLYUI = {
     },
     addMaskContent: function(content, selector) {
         $((typeof selector === 'undefined' ? '.mask' : selector) + ' .content_box').append(content);
+    },
+    setMaskTitle: function(title, selector) {
+        $((typeof selector === 'undefined' ? '.mask' : selector) + ' .title').text(title);
     }
 }
 
@@ -672,6 +796,40 @@ var HttpRequest = {
         ANCHOR_INDEX_API: "http://mobile.ximalaya.com/mobile/discovery/v1/anchor/recommend?device=#{device}&version=#{version}",
         getIndexPageData: function(callback) {
             HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_INDEX_API, HttpRequest.API_CONFIG), callback);
+        },
+
+        // 获取主播基本资料
+        ANCHOR_INTRO_API: "http://www.ximalaya.com/mobile/v1/artist/intro?device=#{device}&toUid=#{toUid}",
+        getAnchorIntroData: function(callback, uid) {
+            var paras = {
+                toUid: uid,
+                device: HttpRequest.API_CONFIG.device
+            };
+
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_INTRO_API, paras), callback);
+        },
+
+        // 获取主播专辑
+        ANCHOR_ALBUMS_API : "http://mobile.ximalaya.com/mobile/v1/artist/albums?toUid=#{toUid}&pageSize=15&pageId=#{pageId}",
+        getAnchorAlbumsData: function(callback, uid, pageId) {
+            var paras = {
+                toUid: uid,
+                pageId: pageId
+            }
+
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_ALBUMS_API, paras), callback);
+        },
+
+        // 获取主播声音
+        ANCHOR_TRACKS_API : "http://mobile.ximalaya.com/mobile/v1/artist/tracks?toUid=#{toUid}&pageId=#{pageId}&device=#{device}&pageSize=15",
+        getAnchorTracksData: function(callback, uid, pageId) {
+            var paras = {
+                toUid: uid,
+                pageId: pageId,
+                device: HttpRequest.API_CONFIG.device
+            }
+
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_TRACKS_API, paras), callback);
         }
     },
     /**
@@ -685,16 +843,16 @@ var HttpRequest = {
         rankItem: {
             RANK_ITEM_LIST_API: "http://mobile.ximalaya.com/mobile/discovery/v3/rankingList/#{contentType}?pageId=#{pageId}&rankingListId=#{rankingListId}&subCategoryId=#{subCategoryId}&pageSize=20&target=main&device=#{device}&version=#{version}",
             getRankItemList: function(callback, contentType, pageId, rankingListId, subCategoryId) {
-                var para = {
+                var paras = {
                     contentType: contentType,
                     pageId: pageId,
                     rankingListId: rankingListId,
                     subCategoryId: subCategoryId
                 };
 
-                $.extend(para, HttpRequest.API_CONFIG);
+                $.extend(paras, HttpRequest.API_CONFIG);
 
-                HttpRequest.baseRequest(HttpRequest.getAPI(this.RANK_ITEM_LIST_API, para), callback);
+                HttpRequest.baseRequest(HttpRequest.getAPI(this.RANK_ITEM_LIST_API, paras), callback);
             }
         }
     },
@@ -708,3 +866,15 @@ var HttpRequest = {
         }
     }
 };
+
+var BB10Util = {
+    parseTime: function(time) {
+        var m = Math.floor(time / 60);
+        var s = Math.floor(time % 60);
+
+        m = m < 10 ? '0' + m : m;
+        s = s < 10 ? '0' + s : s;
+
+        return m + ':' + s;
+    }
+}
