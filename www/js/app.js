@@ -50,6 +50,8 @@ var AnchorIndex = {
         // 显示主播信息框架
         XMLYUI.addMaskContent(xhr.responseText, '.anchor_index_panel');
 
+        AnchorIndex.attachViewAll();
+
         /*
          * 加载信息
          * 1, 主播基本信息
@@ -63,7 +65,7 @@ var AnchorIndex = {
     initAnchorIntro: function(data) {
         var data = JSON.parse(data);
         // mask title
-        XMLYUI.setMaskTitle(data.nickname);
+        XMLYUI.setMaskTitle(data.nickname, '.anchor_index_panel');
         // 背景
         $('.anchor_index_banner').css({
             backgroundImage: 'url(' + data.mobileLargeLogo + ')'
@@ -82,7 +84,122 @@ var AnchorIndex = {
         $('.anchor_index_gender').text(data.gender === 1 ? '男' : '女');
         // 星座
         $('.anchor_index_constellation').text(data.constellation);
+
+        // 设置主播 uid
+        $('.anchor_index_album .more').data('uid', data.uid).data('type', 'album');
+        $('.anchor_index_track .more').data('uid', data.uid).data('type', 'track');
     },
+    attachViewAll: function() {
+        $('.anchor_index_album .more, .anchor_index_track .more').on('click', function(e) {
+            var target = $(e.currentTarget),
+                type = target.data('type'),
+                uid = target.data('uid');
+
+            switch (type) {
+                case 'album':
+                    XMLYUI.addMask('anchor_all_albums', '全部专辑');
+                    HttpRequest.anchor.getAnchorAlbumsData(AnchorIndex.appendAnchorAlbums, uid, 1);
+                    break;
+                case 'track':
+                    XMLYUI.addMask('anchor_all_tracks', '全部声音');
+                    HttpRequest.anchor.getAnchorTracksData(AnchorIndex.appendAnchorTracks, uid, 1);
+                    break;
+                default:
+                    break;
+            }
+
+            $('.anchor_all_albums, .anchor_all_tracks').on('click', '.load_more_btn.can_load_more', function(e) {
+                var target = $(e.target),
+                    uid = target.data('uid'),
+                    pageId = target.data('pageid');
+
+                target.removeClass('can_load_more').text('正在加载中...');
+
+                if(target.parents('.anchor_all_albums')[0]) {
+                    HttpRequest.anchor.getAnchorAlbumsData(AnchorIndex.appendAnchorAlbums, uid, pageId + 1);
+                }else {
+                    HttpRequest.anchor.getAnchorTracksData(AnchorIndex.appendAnchorTracks, uid, pageId + 1);
+                }
+            });
+        });
+    },
+
+    // 专辑显示全部
+    appendAnchorAlbums: function(data) {
+        var data = JSON.parse(data),
+            list = data['list'],
+            item = null,
+            itemHTML = '';
+
+        for (var i = 0, len = list.length; i < len; i++) {
+            item = list[i];
+
+            itemHTML += ['<div class="l_fixed_item" data-uid="' + item['uid'] + '" data-albumid="' + item['albumId'] + '">',
+                '    <div class="l_fixed_cover">',
+                '        <img src="' + item['coverLarge'] + '">',
+                '    </div>',
+                '    <div class="l_fixed_desc">',
+                '        <h2>' + item['title'] + '</h2>',
+                '        <p>' + item['intro'] + '</p>',
+                '        <p>',
+                '            <span>次数 </span>',
+                '            <span>' + (item['playTimes'] || '') + '</span>',
+                '          <span>声音数量 </span>',
+                '          <span>' + item['tracks'] + '</span>',
+                '        </p>',
+                '    </div>',
+                '</div>'].join("");
+        }
+
+        itemHTML += XMLYUI.getLoadMoreHTML(data.pageId >= data.maxPageId, {
+            "data-uid": list[0].uid,
+            "data-pageid": data.pageId,
+            "data-maxpageid": data.maxPageId
+        });
+
+        $('.anchor_all_albums .load_more_btn').remove();
+
+        XMLYUI.addMaskContent(itemHTML, '.anchor_all_albums');
+    },
+
+    // 声音全部显示
+    appendAnchorTracks: function(data) {
+        var data = JSON.parse(data);
+            list = data['list'],
+            item = null,
+            itemHTML = '';
+
+        for (var i = 0, len = list.length; i < len; i++) {
+            item = list[i];
+            itemHTML += ['<div class="l_fixed_item">',
+                '    <div class="l_fixed_cover track radius">',
+                '        <img src="' + item['coverLarge'] + '">',
+                '    </div>',
+                '    <div class="l_fixed_desc">',
+                '        <h2 class="dbh2">' + item['title'] + '</h2>',
+                '        <p>',
+                '            <span>次数 </span>',
+                '            <span>' + item['playtimes'] + '</span>',
+                '            <span>时间 </span>',
+                '            <span>' + BB10Util.parseTime(item['duration']) + '</span>',
+                '            <span>评论 </span>',
+                '            <span>' + item['comments'] + '</span>',
+                '        </p>',
+                '    </div>',
+                '</div>'].join("");
+        }
+
+        itemHTML += XMLYUI.getLoadMoreHTML(data.pageId >= data.maxPageId, {
+            "data-uid": list[0].uid,
+            "data-pageid": data.pageId,
+            "data-maxpageid": data.maxPageId
+        });
+
+        $('.anchor_all_tracks .load_more_btn').remove();
+
+        XMLYUI.addMaskContent(itemHTML, '.anchor_all_tracks');
+    },
+
     initAnchorAlbums: function(data) {
         var data = JSON.parse(data),
             list = data['list'],
@@ -387,6 +504,8 @@ var XMLYUI = {
         $(document).on('click', '.anchor_evt_panel', function(e) {
             AnchorIndex.init($(e.currentTarget).data('uid'));
         });
+
+        // 点击声音进入播放界面
     },
     addMask: function(clazz, title) {
         $(bb.screen.currentScreen).append($('<div class="mask ' + (typeof clazz === 'undefined' ? '' : clazz) + '">' +
@@ -406,6 +525,13 @@ var XMLYUI = {
     },
     setMaskTitle: function(title, selector) {
         $((typeof selector === 'undefined' ? '.mask' : selector) + ' .title').text(title);
+    },
+    getLoadMoreHTML: function(isAllDone, data) {
+        var dataStr = '';
+        for (v in data) {
+            dataStr += v +'="' + data[v] + '" ';
+        }
+        return '<div ' + dataStr + ' class="load_more_btn' + (isAllDone ? ' load_all_done' : ' can_load_more') + '">' + (isAllDone ? '已加载完成' : '点击加载更多') + '</div>';
     }
 }
 
@@ -624,7 +750,7 @@ var TabMgr = {
 
                     listItem = list[j];
                     if(displayStyle === 1) {
-                        itemHTML += '<div class="three_box_item" data-uid="' + listItem['uid'] + '">' +
+                        itemHTML += '<div class="three_box_item anchor_evt_panel" data-uid="' + listItem['uid'] + '">' +
                             '    <div>' +
                             '        <img src="' + listItem['largeLogo'] + '">' +
                             '        <div class="three_box_info">' + listItem['nickname'] + '</div>' +
@@ -632,7 +758,7 @@ var TabMgr = {
                             '    <p>' + (listItem['verifyTitle'] || listItem['personDescribe'] || '') + '</p>' +
                             '</div>';
                     }else {
-                        itemHTML += '<div class="singer_item" data-uid="' + listItem['uid'] + '">' +
+                        itemHTML += '<div class="singer_item anchor_evt_panel" data-uid="' + listItem['uid'] + '">' +
                             '    <div class="l_fixed_cover radius">' +
                             '        <img src="' + listItem['largeLogo'] + '">' +
                             '    </div>' +

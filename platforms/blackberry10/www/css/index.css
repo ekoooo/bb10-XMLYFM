@@ -403,3 +403,10 @@ body {
     margin-top: 1rem;
 }
 /*主播主页 end*/
+.load_more_btn {
+    text-align: center;
+    background-color: #eee;
+    font-size: 2rem;
+    line-height: 4rem;
+    font-style: italic;
+}
