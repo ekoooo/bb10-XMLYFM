@@ -4,8 +4,30 @@
         "uninstalled": []
     },
     "config_munge": {
-        "files": {}
+        "files": {
+            "www/config.xml": {
+                "parents": {
+                    "/widget": [
+                        {
+                            "xml": "<feature name=\"com.blackberry.ui.dialog\" value=\"com.blackberry.ui.dialog\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"com.blackberry.ui.toast\" value=\"com.blackberry.ui.toast\" />",
+                            "count": 1
+                        }
+                    ]
+                }
+            }
+        }
     },
-    "installed_plugins": {},
+    "installed_plugins": {
+        "com.blackberry.ui.dialog": {
+            "PACKAGE_NAME": "com.xmlyfm.com"
+        },
+        "com.blackberry.ui.toast": {
+            "PACKAGE_NAME": "com.xmlyfm.com"
+        }
+    },
     "dependent_plugins": {}
 }

@@ -44,7 +44,7 @@ var AnchorIndex = {
         // 初始化界面
         XMLYUI.addMask('anchor_index_panel', '');
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', '../tpl/anchorIndex.tpl', false);
+        xhr.open('GET', '../tpl/anchor_index.tpl', false);
         xhr.send();
 
         // 显示主播信息框架
@@ -134,7 +134,7 @@ var AnchorIndex = {
         for (var i = 0, len = list.length; i < len; i++) {
             item = list[i];
 
-            itemHTML += ['<div class="l_fixed_item" data-uid="' + item['uid'] + '" data-albumid="' + item['albumId'] + '">',
+            itemHTML += ['<div class="l_fixed_item album_evt_panel" data-pricetype="' + item['priceTypeEnum'] + '" data-uid="' + item['uid'] + '" data-albumid="' + item['albumId'] + '">',
                 '    <div class="l_fixed_cover">',
                 '        <img src="' + item['coverLarge'] + '">',
                 '    </div>',
@@ -210,7 +210,7 @@ var AnchorIndex = {
         for (var i = 0, len = (list.length > AnchorIndex.ANCHOR_BLBUMS_PRE_NUM ? AnchorIndex.ANCHOR_BLBUMS_PRE_NUM : list.length); i < len; i++) {
             item = list[i];
 
-            itemHTML += ['<div class="l_fixed_item" data-uid="' + item['uid'] + '" data-albumid="' + item['albumId'] + '">',
+            itemHTML += ['<div class="l_fixed_item album_evt_panel" data-pricetype="' + item['priceTypeEnum'] + '" data-uid="' + item['uid'] + '" data-albumid="' + item['albumId'] + '">',
                 '    <div class="l_fixed_cover">',
                 '        <img src="' + item['coverLarge'] + '">',
                 '    </div>',
@@ -465,7 +465,7 @@ var XMLYRank = {
         for (var i = 0, len = list.length; i < len; i++) {
             item = list[i];
 
-            rankListItemHTML += ['<div class="l_fixed_item">',
+            rankListItemHTML += ['<div class="l_fixed_item album_evt_panel" data-pricetype="' + item['priceTypeEnum'] + '" data-uid="' + item['uid'] + '" data-albumid="' + item['albumId'] + '">',
                 '    <div class="l_fixed_cover">',
                 '        <img src="' + item['coverMiddle'] + '" />',
                 '    </div>',
@@ -488,6 +488,66 @@ var XMLYRank = {
 }
 
 /**
+ * 专辑
+ */
+var Album = {
+    init: function(albumId) {
+        // 界面
+        XMLYUI.addMask('album_main_mask', '专辑详情');
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '../tpl/album_main.tpl', false);
+        xhr.send();
+        // 显示主播信息框架
+        XMLYUI.addMaskContent(xhr.responseText, '.album_main_mask');
+
+        HttpRequest.album.getAlbumBaseInfoData(Album.initAlbumBaseInfo, albumId);
+        HttpRequest.album.getAlbumListData(Album.initAlbumListInfo, albumId, 1);
+    },
+    initAlbumListInfo: function(data) {
+        var data = JSON.parse(data).data,
+            pageSize = data['pageSize'],
+            pageId = data['pageId'],
+            maxPageId = data['maxPageId'],
+            totalCount = data['totalCount'],
+            toNum;
+            lis = '';
+
+        // 初始化时需要加入选集面板, 选集时不需要
+        if(!$('.album_main_mask .album_info_change_pageid_li')[0]) {
+            $('.album_main_mask .album_info_list_total_counts').text('共 ' + totalCount + ' 集');
+            for (var i = 0; i < maxPageId; i++) {
+                toNum = (i + 1) * pageSize;
+                lis += '<li class="album_info_change_pageid_li ' + ((i + 1) === pageId ? 'active' : '') + '">' + (i * pageSize + 1) + '~' + (toNum > totalCount ? totalCount : toNum) + '</li>';
+            }
+            $('.album_main_mask .album_info_change_pageid_box ul').append(lis);
+        }
+    },
+    initAlbumBaseInfo: function(data) {
+        var data = JSON.parse(data),
+            album = data['data']['album'],
+            user = data['data']['user'];
+
+        // 专辑图片
+        $('.album_main_mask .album_info_cover >img').attr('src', album['coverLargePop']);
+        // 专辑名称
+        $('.album_main_mask .album_info_title').text(album['title']);
+        // 主播
+        $('.album_main_mask .album_info_anchor').text(album['nickname']);
+        // 播放次数
+        $('.album_main_mask .album_info_playtimes').text(album['playTimes']);
+        // 分裂
+        $('.album_main_mask .album_info_cate').text(album['categoryName']);
+        // 专辑简介
+        $('.album_main_mask .album_info_intro').text(album['shortIntro']);
+
+        // 主播信息
+        $('.album_main_mask .album_info_intro_box .l_fixed_cover >img').attr('src', user['smallLogo']);
+        $('.album_main_mask .album_info_anchor_follows').text(user['followers']);
+        $('.album_main_mask .album_info_anchor_desc').text(user['personalSignature'] || user['personDescribe'] || user['ptitle'] || '');
+    }
+}
+
+/**
  * 界面处理
  */
 var XMLYUI = {
@@ -506,6 +566,21 @@ var XMLYUI = {
         });
 
         // 点击声音进入播放界面
+        $(document).on('click', '.album_evt_panel', function(e) {
+            var target = $(e.currentTarget);
+
+            if(target.data('pricetype') === 2) {
+                // 其实可以查询到声音信息, 这样就可以收听了
+                XMLYUI.toast('付费专辑无法收听~~~');
+            }
+
+            Album.init(target.data('albumid'));
+        });
+
+        // 选集显示与隐藏
+        $(document).on('click', '.album_info_change_pageid', function(e) {
+            $(e.currentTarget).next().toggle();
+        });
     },
     addMask: function(clazz, title) {
         $(bb.screen.currentScreen).append($('<div class="mask ' + (typeof clazz === 'undefined' ? '' : clazz) + '">' +
@@ -532,6 +607,26 @@ var XMLYUI = {
             dataStr += v +'="' + data[v] + '" ';
         }
         return '<div ' + dataStr + ' class="load_more_btn' + (isAllDone ? ' load_all_done' : ' can_load_more') + '">' + (isAllDone ? '已加载完成' : '点击加载更多') + '</div>';
+    },
+    alert: function(content, title) {
+        function dialogCallBack(selection) {
+            // TODO
+        }
+
+        blackberry.ui.dialog.standardAskAsync(content,
+            blackberry.ui.dialog.D_OK,
+            dialogCallBack,
+            {
+                title : title
+            }
+        );
+    },
+    toast: function(message, timeout) {
+        var options = {
+            timeout : 1000 || timeout
+        };
+
+        blackberry.ui.toast.show(message, options);
     }
 }
 
@@ -989,6 +1084,29 @@ var HttpRequest = {
         RECOMMEND_INDEX_API: "http://mobile.ximalaya.com/mobile/discovery/v3/recommend/hotAndGuess?device=#{device}&version=#{version}",
         getIndexPageData: function(callback) {
             HttpRequest.baseRequest(HttpRequest.getAPI(this.RECOMMEND_INDEX_API, HttpRequest.API_CONFIG), callback);
+        }
+    },
+    /**
+     * 专辑
+     */
+    album: {
+        // ALBUM_BASE_INFO_API: "http://mobile.ximalaya.com/mobile/v1/album?albumId=#{albumId}&device=#{device}",
+        ALBUM_BASE_INFO_API: "http://mobile.ximalaya.com/mobile/v1/album/rich?albumId=#{albumId}",
+        getAlbumBaseInfoData: function(callback, albumId) {
+            var params = {
+                albumId: albumId
+            };
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.ALBUM_BASE_INFO_API, params), callback);
+        },
+
+        ALBUM_LIST_API: "http://mobile.ximalaya.com/mobile/v1/album/track?albumId=#{albumId}&pageId=#{pageId}&pageSize=20&device=#{device}&isAsc=true",
+        getAlbumListData: function(callback, albumId, pageId) {
+            var params = {
+                albumId: albumId,
+                pageId: pageId,
+                device: HttpRequest.API_CONFIG.device
+            };
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.ALBUM_LIST_API, params), callback);
         }
     }
 };
