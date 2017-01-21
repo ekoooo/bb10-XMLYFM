@@ -24,7 +24,7 @@ var App = {
         // 主页 tab 切换事件
         TabMgr.attachEvent();
         // 榜单
-        XMLYRank.attachEvent();
+        Rank.attachEvent();
         // UI 事件
         XMLYUI.attachEvent();
     }
@@ -263,16 +263,27 @@ var AnchorIndex = {
     }
 }
 
+var Anchor = {
+    initMoreAnchor: function(data) {
+        var data = JSON.parse(data);
+        console.log(data)
+    },
+    initMoreAnchorCates: function(data) {
+        var data = JSON.parse(data);
+        console.log(data)
+    }
+}
+
 /**
  * 处理榜单
  */
-var XMLYRank = {
+var Rank = {
     isReading: false,
     attachEvent: function() {
         $(document).on('click', '.rank_list >.l_fixed_item', function(e) {
             var target = $(e.currentTarget);
 
-            XMLYRank.appendRankList(target.attr('data-title'), target.attr('data-contentType'), target.attr('data-rankingListId'));
+            Rank.appendRankList(target.attr('data-title'), target.attr('data-contentType'), target.attr('data-rankingListId'));
         });
     },
     appendRankList: function(title, contentType, rankingListId, pageId, subCategoryId) {
@@ -281,28 +292,28 @@ var XMLYRank = {
         // 弹出遮罩
         XMLYUI.addMask('rank_list', title);
         // 获取数据
-        HttpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
+        HttpRequest.rank.rankItem.getRankItemList(Rank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
     },
     appendRankListCallBack: function(data) {
         var data = JSON.parse(data),
             contentType = data['contentType'];
 
-        XMLYRank.appendRankListSubCates(data['categories']);
+        Rank.appendRankListSubCates(data['categories']);
         switch (contentType) {
             case 'album': // 专辑
-                XMLYRank.appendRankListAlbum(data);
+                Rank.appendRankListAlbum(data);
                 break;
             case 'track': // 声音
-                XMLYRank.appendRankListTrack(data);
+                Rank.appendRankListTrack(data);
                 break;
             case 'anchor': // 主播
-                XMLYRank.appendRankListAnchor(data);
+                Rank.appendRankListAnchor(data);
                 break;
             default:
                 break;
         }
 
-        XMLYRank.isReading = false;
+        Rank.isReading = false;
     },
     appendRankListAnchor: function(data) {
         var list = data['list'],
@@ -390,7 +401,7 @@ var XMLYRank = {
             // 清空
             $('.mask.rank_list .content_box').empty().append('<div class="subcates_placeholder"></div>');
 
-            HttpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
+            HttpRequest.rank.rankItem.getRankItemList(Rank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
         });
 
         // 滚动加载
@@ -401,8 +412,8 @@ var XMLYRank = {
                 topH = target.scrollTop(),
                 contentH = target.find('.content_box').height();
 
-            if(!XMLYRank.isReading && boxH + topH >= contentH) {
-                XMLYRank.isReading = true;
+            if(!Rank.isReading && boxH + topH >= contentH) {
+                Rank.isReading = true;
 
                 var rankItemList = $('.mask.rank_list .content_box .rank_item_list:last-child'),
                     contentType = rankItemList.attr('data-contentType'),
@@ -419,12 +430,12 @@ var XMLYRank = {
                     }
 
                     setTimeout(function() {
-                        XMLYRank.isReading = false;
+                        Rank.isReading = false;
                     }, 2000);
                     return;
                 }
 
-                HttpRequest.rank.rankItem.getRankItemList(XMLYRank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
+                HttpRequest.rank.rankItem.getRankItemList(Rank.appendRankListCallBack, contentType, pageId, rankingListId, subCategoryId);
             }
         });
     },
@@ -503,13 +514,31 @@ var Album = {
         HttpRequest.album.getAlbumBaseInfoData(Album.initAlbumBaseInfo, albumId);
         HttpRequest.album.getAlbumListData(Album.initAlbumListInfo, albumId, 1);
     },
+    attachChangePageId: function() {
+        $('.album_info_change_pageid_li').on('click', function(e) {
+            var target = $(e.currentTarget),
+                pageId = target.data('pageid');
+                albumId = target.data('albumid');
+
+            target.siblings().removeClass('active');
+            target.addClass('active');
+
+            HttpRequest.album.getAlbumListData(Album.initAlbumListInfo, albumId, pageId);
+
+            // 隐藏选集 panel
+            target.parents('.album_info_change_pageid_box').toggle();
+        });
+    },
     initAlbumListInfo: function(data) {
         var data = JSON.parse(data).data,
+            list = data['list'],
             pageSize = data['pageSize'],
             pageId = data['pageId'],
             maxPageId = data['maxPageId'],
             totalCount = data['totalCount'],
-            toNum;
+            albumId = list[0].albumId,
+            toNum,
+            listItem = null,
             lis = '';
 
         // 初始化时需要加入选集面板, 选集时不需要
@@ -517,10 +546,39 @@ var Album = {
             $('.album_main_mask .album_info_list_total_counts').text('共 ' + totalCount + ' 集');
             for (var i = 0; i < maxPageId; i++) {
                 toNum = (i + 1) * pageSize;
-                lis += '<li class="album_info_change_pageid_li ' + ((i + 1) === pageId ? 'active' : '') + '">' + (i * pageSize + 1) + '~' + (toNum > totalCount ? totalCount : toNum) + '</li>';
+                lis += '<li data-pageid="' + (i + 1) + '" data-albumid="' + albumId + '" class="album_info_change_pageid_li ' + ((i + 1) === pageId ? 'active' : '') + '">' +
+                    (i * pageSize + 1) + '~' + (toNum > totalCount ? totalCount : toNum) +
+                    '</li>';
             }
             $('.album_main_mask .album_info_change_pageid_box ul').append(lis);
+
+            // 监听选集
+            Album.attachChangePageId();
         }
+
+        lis = '';
+        // 加入声音列表
+        for (var i = 0, len = list.length; i < len; i++) {
+            listItem = list[i];
+            lis += ['<div class="l_fixed_item">',
+                '    <div class="l_fixed_cover radius track">',
+                '        <img src="' + listItem['coverLarge'] + '">',
+                '    </div>',
+                '    <div class="l_fixed_desc">',
+                '        <h2 class="album_info_anchor dbh2">' + listItem['title'] + '</h2>',
+                '        <p>',
+                '            <span>播放</span>',
+                '            <span>' + listItem['playtimes'] + '</span>',
+                '            <span>时长</span>',
+                '            <span>' + BB10Util.parseTime(listItem['duration']) + '</span>',
+                '            <span>评论</span>',
+                '            <span>' + listItem['comments'] + '</span>',
+                '        </p>',
+                '    </div>',
+                '</div>'].join("");
+        }
+
+        $('.album_main_mask .album_list_items').html(lis);
     },
     initAlbumBaseInfo: function(data) {
         var data = JSON.parse(data),
@@ -532,7 +590,7 @@ var Album = {
         // 专辑名称
         $('.album_main_mask .album_info_title').text(album['title']);
         // 主播
-        $('.album_main_mask .album_info_anchor').text(album['nickname']);
+        $('.album_main_mask .album_info_anchor_nickname').text(album['nickname']);
         // 播放次数
         $('.album_main_mask .album_info_playtimes').text(album['playTimes']);
         // 分裂
@@ -565,7 +623,7 @@ var XMLYUI = {
             AnchorIndex.init($(e.currentTarget).data('uid'));
         });
 
-        // 点击声音进入播放界面
+        // 点击专辑进入专辑界面
         $(document).on('click', '.album_evt_panel', function(e) {
             var target = $(e.currentTarget);
 
@@ -733,6 +791,16 @@ var TabMgr = {
                 TabMgr.switchTab(target.attr('data-content_type'));
             }
         });
+
+        // 更多主播
+        $(document).on('click', '.more_anchors', function(e) {
+            var target = $(e.currentTarget),
+                type = target.data('type'),
+                categoryId = target.data('categoryid');
+
+            HttpRequest.anchor.getMoreAnchorData(Anchor.initMoreAnchor, type, categoryId, 1);
+            HttpRequest.anchor.getAnchorCateDate(Anchor.initMoreAnchorCates);
+        });
     },
 
     // 分类 tab
@@ -822,7 +890,7 @@ var TabMgr = {
     // 主播 tab
     anchorTab: {
         anchorInfo: null,
-        initPageItem: function(data, maxLen) {
+        initPageItem: function(data, type, maxLen) {
             var dataLen = data.length,
                 dataItem = null,
                 listItem = null,
@@ -875,7 +943,7 @@ var TabMgr = {
                 anchorListHTML += '<div class="anchor_list three_box_list">' +
                     '    <div class="three_box_header clearfix">' +
                     '        <h2>' + dataItem['title'] + '</h2>' +
-                    '        <span>更多</span>' +
+                    '        <span class="more_anchors" data-type="' + type + '" data-categoryid="' + dataItem['id'] + '">更多</span>' +
                     '    </div>' +  itemHTML +
                     '</div>';
             }
@@ -887,8 +955,8 @@ var TabMgr = {
                 TabMgr.anchorTab.anchorInfo = JSON.parse(data);
 
                 $('.anchor').empty();
-                TabMgr.anchorTab.initPageItem(TabMgr.anchorTab.anchorInfo['famous']);
-                TabMgr.anchorTab.initPageItem(TabMgr.anchorTab.anchorInfo['normal'], 3);
+                TabMgr.anchorTab.initPageItem(TabMgr.anchorTab.anchorInfo['famous'], 'famous');
+                TabMgr.anchorTab.initPageItem(TabMgr.anchorTab.anchorInfo['normal'], 'normal', 3);
             }
         },
         init: function() {
@@ -916,7 +984,7 @@ var TabMgr = {
                 threeBoxItemHTML = '';
                 for(var j = 0, innerListLen = innerList.length; j < innerListLen; j++) {
                     innerListItem = innerList[j];
-                    threeBoxItemHTML += '<div class="three_box_item">' +
+                    threeBoxItemHTML += '<div class="three_box_item album_evt_panel" data-pricetype="' + innerListItem['priceTypeEnum'] + '" data-uid="' + innerListItem['uid'] + '" data-albumid="' + innerListItem['albumId'] + '">' +
                         '    <div>' +
                         '        <img src="' + innerListItem['coverLarge'] + '">' +
                         '        <div class="three_box_info">' + innerListItem['title'] + '</div>' +
@@ -969,9 +1037,9 @@ var HttpRequest = {
         "device": "android",
         "version": "5.4.63"
     },
-    getAPI: function(api, paras) {
-        for (variable in paras) {
-            api = api.replace('#{' + variable + '}', paras[variable]);
+    getAPI: function(api, params) {
+        for (variable in params) {
+            api = api.replace('#{' + variable + '}', params[variable]);
         }
         return api;
     },
@@ -988,6 +1056,7 @@ var HttpRequest = {
                     callback(xhr.responseText);
                 }else {
                     callback(null);
+                    XMLYUI.toast('网络不可用~~~');
                 }
             }
         }
@@ -1022,35 +1091,53 @@ var HttpRequest = {
         // 获取主播基本资料
         ANCHOR_INTRO_API: "http://www.ximalaya.com/mobile/v1/artist/intro?device=#{device}&toUid=#{toUid}",
         getAnchorIntroData: function(callback, uid) {
-            var paras = {
+            var params = {
                 toUid: uid,
                 device: HttpRequest.API_CONFIG.device
             };
 
-            HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_INTRO_API, paras), callback);
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_INTRO_API, params), callback);
         },
 
         // 获取主播专辑
-        ANCHOR_ALBUMS_API : "http://mobile.ximalaya.com/mobile/v1/artist/albums?toUid=#{toUid}&pageSize=15&pageId=#{pageId}",
+        ANCHOR_ALBUMS_API: "http://mobile.ximalaya.com/mobile/v1/artist/albums?toUid=#{toUid}&pageSize=15&pageId=#{pageId}",
         getAnchorAlbumsData: function(callback, uid, pageId) {
-            var paras = {
+            var params = {
                 toUid: uid,
                 pageId: pageId
             }
 
-            HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_ALBUMS_API, paras), callback);
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_ALBUMS_API, params), callback);
         },
 
         // 获取主播声音
-        ANCHOR_TRACKS_API : "http://mobile.ximalaya.com/mobile/v1/artist/tracks?toUid=#{toUid}&pageId=#{pageId}&device=#{device}&pageSize=15",
+        ANCHOR_TRACKS_API: "http://mobile.ximalaya.com/mobile/v1/artist/tracks?toUid=#{toUid}&pageId=#{pageId}&device=#{device}&pageSize=15",
         getAnchorTracksData: function(callback, uid, pageId) {
-            var paras = {
+            var params = {
                 toUid: uid,
                 pageId: pageId,
                 device: HttpRequest.API_CONFIG.device
             }
 
-            HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_TRACKS_API, paras), callback);
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_TRACKS_API, params), callback);
+        },
+
+        // 主播 -> 更多主播
+        MORE_ANCHOR_API: "http://mobile.ximalaya.com/mobile/discovery/v1/anchor/#{type}?category_id=#{categoryId}&page=#{page}&device=#{device}&per_page=20",
+        getMoreAnchorData: function(callback, type, categoryId, page) {
+            var params = {
+                type: type,
+                categoryId: categoryId,
+                page: page,
+                device: HttpRequest.API_CONFIG.device
+            };
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.MORE_ANCHOR_API, params), callback);
+        },
+
+        // 主播类型
+        ANCHOR_CATE_API: "http://mobile.ximalaya.com/mobile/discovery/v1/anchor/categoryWithFamous?device=#{device}&version=#{version}",
+        getAnchorCateDate: function(callback) {
+            HttpRequest.baseRequest(HttpRequest.getAPI(this.ANCHOR_CATE_API, HttpRequest.API_CONFIG), callback);
         }
     },
     /**
@@ -1064,16 +1151,16 @@ var HttpRequest = {
         rankItem: {
             RANK_ITEM_LIST_API: "http://mobile.ximalaya.com/mobile/discovery/v3/rankingList/#{contentType}?pageId=#{pageId}&rankingListId=#{rankingListId}&subCategoryId=#{subCategoryId}&pageSize=20&target=main&device=#{device}&version=#{version}",
             getRankItemList: function(callback, contentType, pageId, rankingListId, subCategoryId) {
-                var paras = {
+                var params = {
                     contentType: contentType,
                     pageId: pageId,
                     rankingListId: rankingListId,
                     subCategoryId: subCategoryId
                 };
 
-                $.extend(paras, HttpRequest.API_CONFIG);
+                $.extend(params, HttpRequest.API_CONFIG);
 
-                HttpRequest.baseRequest(HttpRequest.getAPI(this.RANK_ITEM_LIST_API, paras), callback);
+                HttpRequest.baseRequest(HttpRequest.getAPI(this.RANK_ITEM_LIST_API, params), callback);
             }
         }
     },

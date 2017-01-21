@@ -4,6 +4,12 @@ http://mobile.ximalaya.com/mobile/discovery/v2/tabs?device=android&version=5.4.6
 ## 主播 TAB
 http://mobile.ximalaya.com/mobile/discovery/v1/anchor/recommend?device=android&version=5.4.63
 
+## 主播分类(在更多主播使用)
+http://mobile.ximalaya.com/mobile/discovery/v1/anchor/categoryWithFamous?device=android&version=5.4.63
+
+## 更多主播列表
+http://mobile.ximalaya.com/mobile/discovery/v1/anchor/#{famous|normal}?category_id=2&device=android&page=2&per_page=20
+
 ## 分类 TAB
 http://mobile.ximalaya.com/mobile/discovery/v2/categories?channel=&device=android&picVersion=13&scale=2&version=5.4.63
 

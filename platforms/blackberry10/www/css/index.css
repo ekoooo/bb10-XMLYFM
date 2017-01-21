@@ -96,7 +96,7 @@ body {
     float: left;
     overflow-y: auto;
     overflow-x: hidden;
-    /*-webkit-overflow-scrolling: touch;*/
+    -webkit-overflow-scrolling: touch;
 }
 /*index tab end*/
 
@@ -307,7 +307,7 @@ body {
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    /*-webkit-overflow-scrolling: touch;*/
+    -webkit-overflow-scrolling: touch;
 }
 /*弹出遮罩 end*/
 /*分类中子分类 start*/
@@ -461,7 +461,7 @@ body {
 .album_info_change_pageid {
     float: right;
     font-style: italic;
-    color: #9F9F9F;
+    color: #0BDED7;
 }
 .album_info_change_pageid_box {
     display: none;
